@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Search, Plus, Check } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { useToast } from "@/components/ui/use-toast";
+import { Input } from "@/components/ui/forms/input";
+import { Button } from "@/components/ui/buttons/button";
+import { ScrollArea } from "@/components/ui/utilities/scroll-area";
+import { useToast } from "@/components/ui/tooltips/use-toast";
 import {
   Select,
   SelectContent,
@@ -11,7 +11,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "@/components/ui/forms/select";
 import { exercises, equipmentList, muscleList } from "@/utils/exercise-data";
 import { useExerciseStore } from "@/utils/exercise-store";
 import { useNavigate } from "react-router-dom";
