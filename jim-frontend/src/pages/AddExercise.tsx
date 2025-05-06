@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, Plus, Check } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { useToast } from "@/components/ui/use-toast";
+import { Input } from "@/components/ui/forms/input";
+import { Button } from "@/components/ui/buttons/button";
+import { ScrollArea } from "@/components/ui/utilities/scroll-area";
+import { useToast } from "@/components/ui/tooltips/use-toast";
 import {
   Select,
   SelectContent,
@@ -11,7 +11,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "@/components/ui/forms/select";
 import { exercises, equipmentList, muscleList } from "@/utils/exercise-data";
 import { useExerciseStore } from "@/utils/exercise-store";
 import { useNavigate } from "react-router-dom";
@@ -19,69 +19,85 @@ import { useNavigate } from "react-router-dom";
 const AddExercise = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  const { addExercise, selectedExercises } = useExerciseStore();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedEquipment, setSelectedEquipment] = useState<string>("all-equipment");
   const [selectedMuscle, setSelectedMuscle] = useState<string>("all-muscles");
-  const { selectedExercises, addExercise } = useExerciseStore();
+  const [tempExercises, setTempExercises] = useState<typeof exercises>([]);
 
-  // When equipment is selected, reset muscle selection and vice versa
+  useEffect(() => {
+    setTempExercises(selectedExercises); // Load current exercises as temp
+  }, [selectedExercises]);
+
   const handleEquipmentChange = (value: string) => {
     setSelectedEquipment(value);
-    setSelectedMuscle("all-muscles");
   };
 
   const handleMuscleChange = (value: string) => {
     setSelectedMuscle(value);
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
     setSelectedEquipment("all-equipment");
+    setSelectedMuscle("all-muscles");
   };
 
   const handleAddExercise = (exercise: typeof exercises[0]) => {
-    addExercise(exercise);
-    toast({
-      title: "Exercise added",
-      description: `${exercise.name} has been added to your workout`,
-    });
+    if (!tempExercises.some((ex) => ex.name === exercise.name)) {
+      setTempExercises((prev) => [...prev, exercise]);
+      toast({
+        title: "Exercise added",
+        description: `${exercise.name} has been added.`,
+      });
+    }
+  };
+
+  const handleRemoveExercise = (exercise: typeof exercises[0]) => {
+    setTempExercises((prev) => prev.filter((ex) => ex.name !== exercise.name));
+  };
+
+  const isExerciseSelected = (exerciseName: string) => {
+    return tempExercises.some((ex) => ex.name === exerciseName);
+  };
+
+  const handleDone = () => {
+    // Remove all old selected exercises from global store
+    selectedExercises.forEach((ex) => addExercise(ex, true));
+    // Add current selections to global store
+    tempExercises.forEach((ex) => addExercise(ex));
+    navigate(-1);
+  };
+
+  const handleCancel = () => {
+    navigate(-1); // Discard temp changes
   };
 
   const filteredExercises = exercises.filter((exercise) => {
-    const matchesSearch = exercise.name
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase());
-    
-    // If equipment filter is active
-    if (selectedEquipment !== "all-equipment") {
-      return matchesSearch && exercise.equipment === selectedEquipment;
-    }
-    
-    // If muscle filter is active
-    if (selectedMuscle !== "all-muscles") {
-      return matchesSearch && exercise.muscle === selectedMuscle;
-    }
-    
-    // If no filters are active, just filter by search
-    return matchesSearch;
-  });
+    const matchesSearch = exercise.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesEquipment = selectedEquipment === "all-equipment" || exercise.equipment === selectedEquipment;
+    const matchesMuscle = selectedMuscle === "all-muscles" || exercise.muscle === selectedMuscle;
 
-  const isExerciseSelected = (exerciseName: string) => {
-    return selectedExercises.some((ex) => ex.name === exerciseName);
-  };
+    return matchesSearch && matchesEquipment && matchesMuscle;
+  });
 
   return (
     <div className="min-h-screen bg-black text-white">
       <div className="p-4 space-y-4">
         <div className="flex justify-between items-center">
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             className="text-white hover:text-blue-400"
-            onClick={() => navigate(-1)}
+            onClick={handleCancel}
           >
             Cancel
           </Button>
           <h1 className="text-xl font-semibold">Add Exercise</h1>
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             className="text-blue-400 hover:text-blue-500"
-            onClick={() => navigate(-1)}
+            onClick={handleDone}
           >
             Done
           </Button>
@@ -93,16 +109,16 @@ const AddExercise = () => {
             className="w-full pl-9 bg-zinc-900 border-zinc-800 text-white placeholder:text-gray-500"
             placeholder="Search exercise"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={handleSearchChange}
           />
         </div>
 
         <div className="grid grid-cols-2 gap-2">
           <Select value={selectedEquipment} onValueChange={handleEquipmentChange}>
-            <SelectTrigger className="w-full bg-zinc-900 border-zinc-800 text-white">
+            <SelectTrigger className="w-full bg-gray-200 text-black border-zinc-800">
               <SelectValue placeholder="All Equipment" />
             </SelectTrigger>
-            <SelectContent className="bg-zinc-900 border-zinc-800">
+            <SelectContent className="bg-white text-black border-zinc-800">
               <SelectGroup>
                 <SelectItem value="all-equipment">All Equipment</SelectItem>
                 {equipmentList.map((equipment) => (
@@ -115,10 +131,10 @@ const AddExercise = () => {
           </Select>
 
           <Select value={selectedMuscle} onValueChange={handleMuscleChange}>
-            <SelectTrigger className="w-full bg-zinc-900 border-zinc-800 text-white">
+            <SelectTrigger className="w-full bg-gray-200 text-black border-zinc-800">
               <SelectValue placeholder="All Muscles" />
             </SelectTrigger>
-            <SelectContent className="bg-zinc-900 border-zinc-800">
+            <SelectContent className="bg-white text-black border-zinc-800">
               <SelectGroup>
                 <SelectItem value="all-muscles">All Muscles</SelectItem>
                 {muscleList.map((muscle) => (
@@ -142,31 +158,38 @@ const AddExercise = () => {
                   key={exercise.name}
                   className="flex items-center space-x-4 p-2 hover:bg-zinc-900 rounded-lg transition-colors"
                 >
-                  <div className="w-12 h-12 bg-zinc-800 rounded-full overflow-hidden">
+                  <div className="w-20 h-20 bg-zinc-800 rounded-lg overflow-hidden">
                     <img
-                      src={exercise.image}
+                      src={exercise.image || "/images/default.png"}
                       alt={exercise.name}
                       className="w-full h-full object-cover"
                     />
                   </div>
+
                   <div className="flex-1">
                     <h3 className="font-medium">{exercise.name}</h3>
                     <p className="text-sm text-gray-400">
                       {exercise.muscle} • {exercise.equipment}
                     </p>
                   </div>
-                  <Button
-                    variant="ghost"
-                    className="p-2 hover:bg-zinc-800 rounded-full"
-                    onClick={() => handleAddExercise(exercise)}
-                    disabled={isExerciseSelected(exercise.name)}
-                  >
-                    {isExerciseSelected(exercise.name) ? (
+
+                  {isExerciseSelected(exercise.name) ? (
+                    <Button
+                      variant="ghost"
+                      className="p-2 hover:bg-zinc-800 rounded-full"
+                      onClick={() => handleRemoveExercise(exercise)}
+                    >
                       <Check className="w-6 h-6 text-green-500" />
-                    ) : (
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="ghost"
+                      className="p-2 hover:bg-zinc-800 rounded-full"
+                      onClick={() => handleAddExercise(exercise)}
+                    >
                       <Plus className="w-6 h-6" />
-                    )}
-                  </Button>
+                    </Button>
+                  )}
                 </div>
               ))}
             </div>
