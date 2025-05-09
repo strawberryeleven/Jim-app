@@ -1,5 +1,5 @@
 import React from "react";
-import { Button } from "@/components/ui/buttons/button";
+import { Button } from "@/components/buttons/button";
 import { DumbbellIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 

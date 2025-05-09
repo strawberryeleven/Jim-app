@@ -1,5 +1,5 @@
 import React from "react";
-import { Checkbox } from "@/components/ui/forms/checkbox";
+import { Checkbox } from "@/components/forms/checkbox";
 import { Trash2 } from "lucide-react";
 
 interface ExerciseSetProps {

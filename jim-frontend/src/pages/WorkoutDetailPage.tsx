@@ -2,25 +2,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import { CalendarX, ArrowLeft } from "lucide-react";
 import { UserCircle, ThumbsUp, MessageCircle, Share2 } from "lucide-react";
 import WorkoutPost from "../components/WorkoutPost";
+import { workoutLogs } from "@/data/WorkoutLogs";
 
-const workoutLogs = {
-  "2025-05-03": [
-    {
-      title: "Afternoon workout 💪",
-      time: "0min",
-      volume: "6 kg",
-      exercises: [
-        {
-          sets: 1,
-          name: "Bench Press (Barbell)",
-          image:
-            "https://www.strengthlog.com/wp-content/uploads/2021/05/Bench-press-barbell.png",
-        },
-      ],
-    },
-  ],
-  // Add more mock entries if needed
-};
 export default function WorkoutDetailPage() {
   const { date } = useParams();
   const navigate = useNavigate();

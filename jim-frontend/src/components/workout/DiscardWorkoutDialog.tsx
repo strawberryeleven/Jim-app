@@ -6,8 +6,8 @@ import {
   DialogFooter, 
   DialogHeader, 
   DialogTitle 
-} from "@/components/ui/dialogs/dialog";
-import { Button } from "@/components/ui/buttons/button";
+} from "@/components/dialogs/dialog";
+import { Button } from "@/components/buttons/button";
 
 interface DiscardWorkoutDialogProps {
   open: boolean;

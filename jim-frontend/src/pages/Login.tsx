@@ -1,9 +1,9 @@
 
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/buttons/button";
-import { Input } from "@/components/ui/forms/input";
-import { Card } from "@/components/ui/cards/card";
+import { Button } from "@/components/buttons/button";
+import { Input } from "@/components/forms/input";
+import { Card } from "@/components/cards/card";
 import { LockKeyhole, Mail } from "lucide-react";
 
 const Login = () => {

@@ -1,5 +1,5 @@
 import React from "react";
-import { Button } from "@/components/ui/buttons/button";
+import { Button } from "@/components/buttons/button";
 import { PlusIcon, X } from "lucide-react";
 import ExerciseSet from "./ExerciseSet";
 
