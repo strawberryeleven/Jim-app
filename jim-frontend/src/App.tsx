@@ -19,6 +19,17 @@ import SaveWorkout from "./pages/SaveWorkout";
 import CreateRoutine from "./pages/CreateRoutine";
 import AddExercise2 from "./pages/AddExercise2";
 import GettingStarted from "./pages/GettingStarted";
+import EditProfile from "./pages/EditProfile";
+import Dashboard from "./pages/Dashboard";
+import Settings from "./pages/Settings";
+import AccountSettingsPage from "./pages/AccountSettingsPage";
+import ChangeUsername from "./pages/ChangeUsername"; 
+import ChangeEmail from "./pages/ChangeEmail"; 
+import UpdatePassword from "./pages/UpdatePassword"; 
+import Statistics from "./pages/Statistics";
+import MeasurementsPage from "./pages/MeasurementsPage";
+import Calendar from "./pages/Calendar";
+import WorkoutDetailPage from "./pages/WorkoutDetailPage";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -44,6 +55,18 @@ const App = () => (
             <Route path="/routines" element={<ExploreRoutine />} />
             <Route path="/routines/:id" element={<RoutineDetails />} />
             <Route path="/save-workout" element={<SaveWorkout />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/edit-profile" element={<EditProfile />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/settings/account" element={<AccountSettingsPage />} />
+            <Route path="/change-username" element={<ChangeUsername />} />
+            <Route path="/change-email" element={<ChangeEmail />} />
+            <Route path="/update-password" element={<UpdatePassword />} />
+            <Route path="/statistics" element={<Statistics />} />
+            <Route path="/measurements" element={<MeasurementsPage />} />
+            <Route path="/calendar" element={<Calendar />} />
+            <Route path="/calendar/:date" element={<WorkoutDetailPage />} />
+            <Route path="/dashboard" element={<Dashboard />} />
           </Routes>
           <BottomNav />
         </div>
