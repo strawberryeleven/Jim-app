@@ -85,7 +85,7 @@ const LogWorkout = () => {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen text-white">
       <div className="p-4 space-y-6">
         {/* ✅ Back Button (non-destructive) */}
         <button

@@ -1,10 +1,22 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { v4 as uuidv4 } from 'uuid';
 import { Button } from "@/components/buttons/button";
 import { Input } from "@/components/forms/input";
 import { Textarea } from "@/components/forms/textarea";
-import { useNavigate } from "react-router-dom";
 import { Plus, AlertCircle } from "lucide-react";
-import { useExerciseStore } from "@/store/RoutineExerciseStore";
+import { useAppSelector, useAppDispatch } from "@/hooks/redux-hooks";
+import { addRoutine } from "@/store/routineSlice";
+import {
+  updateRoutineTitle,
+  updateRoutineComment,
+  addExercise,
+  removeExercise,
+  addSetToExercise,
+  updateSetValue,
+  removeSetFromExercise,
+  clearRoutine
+} from "@/store/RoutineExerciseStore";
 import { useToast } from "@/hooks/use-toast";
 import {
   Dialog,
@@ -23,25 +35,17 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/alerts/alert-dialog";
-import ExerciseCard from "@/components/workout/ExerciseCard";
+} from "@/components/dialogs/alert-dialog";
+import ExerciseCard2 from "@/components/workout/ExerciseCard2";
 
 const CreateRoutine = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const {
-    routineTitle,
-    routineComment,
-    updateRoutineTitle,
-    updateRoutineComment,
-    selectedExercises,
-    addExercise,
-    addSetToExercise,
-    updateSetValue,
-    removeSetFromExercise,
-    removeExercise,
-    clearRoutine,
-  } = useExerciseStore();
+  const dispatch = useAppDispatch();
+  
+  const routineTitle = useAppSelector(state => state.exercises.routineTitle);
+  const routineComment = useAppSelector(state => state.exercises.routineComment);
+  const selectedExercises = useAppSelector(state => state.exercises.selectedExercises);
 
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [showMissingTitleDialog, setShowMissingTitleDialog] = useState(false);
@@ -57,13 +61,25 @@ const CreateRoutine = () => {
       return;
     }
 
+    const newRoutine = {
+      id: uuidv4(),
+      title: trimmedTitle,
+      comment: routineComment,
+      exercises: selectedExercises,
+      createdAt: Date.now(),
+    };
+
+    console.log(newRoutine.id);
+
+    dispatch(addRoutine(newRoutine));
+    
     toast({
       title: "Routine Saved",
       description: `${trimmedTitle} has been saved successfully.`,
     });
 
-    clearRoutine();
-    navigate("/routines");
+    dispatch(clearRoutine());
+    navigate("/workout");
   };
 
   const handleCancel = () => {
@@ -75,13 +91,13 @@ const CreateRoutine = () => {
   };
 
   const confirmDiscard = () => {
-    clearRoutine();
+    dispatch(clearRoutine());
     setShowCancelDialog(false);
     navigate(-1);
   };
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen text-white">
       {/* Header */}
       <div className="flex justify-between items-center p-4 border-b border-gray-800">
         <Button
@@ -105,7 +121,7 @@ const CreateRoutine = () => {
         <Input
           placeholder="Routine title"
           value={routineTitle}
-          onChange={(e) => updateRoutineTitle(e.target.value)}
+          onChange={(e) => dispatch(updateRoutineTitle(e.target.value))}
           className="bg-transparent border-b border-gray-700 rounded-none px-0 text-xl font-medium focus-visible:ring-0 focus-visible:border-gray-500"
         />
       </div>
@@ -115,7 +131,7 @@ const CreateRoutine = () => {
         <Textarea
           placeholder="Add comments about your routine (optional)"
           value={routineComment}
-          onChange={(e) => updateRoutineComment(e.target.value)}
+          onChange={(e) => dispatch(updateRoutineComment(e.target.value))}
           className="bg-transparent border-b border-gray-700 rounded-none px-0 text-lg focus-visible:ring-0 focus-visible:border-gray-500"
         />
       </div>
@@ -124,17 +140,16 @@ const CreateRoutine = () => {
       <div className="px-4 mt-4 space-y-8">
         {selectedExercises.length > 0 ? (
           selectedExercises.map((exercise, index) => (
-            <ExerciseCard
+            <ExerciseCard2
               key={exercise.name}
               exercise={exercise}
               index={index}
-              addSetToExercise={addSetToExercise}
-              updateSetValue={updateSetValue}
-              toggleSetInclusion={() => {}}
-              removeSetFromExercise={(exerciseIndex, setIndex) =>
-                removeSetFromExercise(exercise.name, setIndex)
+              addSetToExercise={(arg) => dispatch(addSetToExercise(arg))}
+              updateSetValue={(arg) => dispatch(updateSetValue(arg))}
+              removeSetFromExercise={(_, setIndex) =>
+                dispatch(removeSetFromExercise({ name: exercise.name, setIndex }))
               }
-              removeExercise={() => removeExercise(exercise.name)}
+              removeExercise={(name) => dispatch(removeExercise(name))}
             />
           ))
         ) : (

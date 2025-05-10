@@ -1,138 +1,86 @@
-  import { create } from "zustand";
-  import { persist } from "zustand/middleware";
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { Exercise } from '../store/routineSlice';
 
-  type SetType = {
-    kg: number;
-    reps: number;
-    included: boolean;
-  };
+interface ExerciseState {
+  routineTitle: string;
+  routineComment: string;
+  selectedExercises: Exercise[];
+}
 
-  type ExerciseType = {
-    name: string;
-    muscle: string;
-    equipment: string;
-    image: string;
-    sets: SetType[];
-  };
+const initialState: ExerciseState = {
+  routineTitle: '',
+  routineComment: '',
+  selectedExercises: [],
+};
 
-  interface ExerciseState {
-    selectedExercises: ExerciseType[];
-    routineTitle: string;
-    routineComment: string;
-    addExercise: (
-      exercise: Omit<ExerciseType, "sets">,
-      remove?: boolean
-    ) => void;
-    removeExercise: (exerciseName: string) => void;
-    addSetToExercise: (exerciseIndex: number) => void;
-    removeSetFromExercise: (exerciseName: string, setId: number) => void;
+export const exerciseSlice = createSlice({
+  name: 'exercises',
+  initialState,
+  reducers: {
+    updateRoutineTitle: (state, action: PayloadAction<string>) => {
+      state.routineTitle = action.payload;
+    },
+    updateRoutineComment: (state, action: PayloadAction<string>) => {
+      state.routineComment = action.payload;
+    },
+    addExercise: (state, action: PayloadAction<Exercise>) => {
+      state.selectedExercises.push(action.payload);
+    },
+    removeExercise: (state, action: PayloadAction<string>) => {
+      state.selectedExercises = state.selectedExercises.filter(
+        exercise => exercise.name !== action.payload
+      );
+    },
+    addSetToExercise: (state, action: PayloadAction<{ name: string }>) => {
+      const exercise = state.selectedExercises.find(
+        ex => ex.name === action.payload.name
+      );
+      if (exercise) {
+        exercise.sets.push({ weight: 0, reps: 0 });
+      }
+    },
     updateSetValue: (
-      exerciseIndex: number,
-      setIndex: number,
-      field: "kg" | "reps",
-      value: number
-    ) => void;
-    updateRoutineTitle: (title: string) => void;
-    updateRoutineComment: (comment: string) => void;
-    clearRoutine: () => void;
-  }
+      state,
+      action: PayloadAction<{
+        name: string;
+        setIndex: number;
+        field: 'weight' | 'reps';
+        value: number;
+      }>
+    ) => {
+      const { name, setIndex, field, value } = action.payload;
+      const exercise = state.selectedExercises.find(ex => ex.name === name);
+      if (exercise && exercise.sets[setIndex]) {
+        exercise.sets[setIndex][field] = value;
+      }
+    },
+    removeSetFromExercise: (
+      state,
+      action: PayloadAction<{ name: string; setIndex: number }>
+    ) => {
+      const { name, setIndex } = action.payload;
+      const exercise = state.selectedExercises.find(ex => ex.name === name);
+      if (exercise) {
+        exercise.sets = exercise.sets.filter((_, i) => i !== setIndex);
+      }
+    },
+    clearRoutine: state => {
+      state.routineTitle = '';
+      state.routineComment = '';
+      state.selectedExercises = [];
+    },
+  },
+});
 
-  export const useExerciseStore = create<ExerciseState>()(
-    persist(
-      (set) => ({
-        selectedExercises: [],
-        routineTitle: "",
-        routineComment: "",
+export const {
+  updateRoutineTitle,
+  updateRoutineComment,
+  addExercise,
+  removeExercise,
+  addSetToExercise,
+  updateSetValue,
+  removeSetFromExercise,
+  clearRoutine,
+} = exerciseSlice.actions;
 
-        addExercise: (exercise, remove = false) =>
-          set((state) => {
-            const exerciseExists = state.selectedExercises.some(
-              (ex) => ex.name === exercise.name
-            );
-
-            if (remove) {
-              if (exerciseExists) {
-                return {
-                  selectedExercises: state.selectedExercises.filter(
-                    (ex) => ex.name !== exercise.name
-                  ),
-                };
-              }
-              return state;
-            }
-
-            if (!exerciseExists) {
-              const newExercise: ExerciseType = {
-                ...exercise,
-                sets: [{ kg: 0, reps: 0, included: true }],
-              };
-              return {
-                selectedExercises: [...state.selectedExercises, newExercise],
-              };
-            }
-
-            return state;
-          }),
-
-        removeExercise: (exerciseName) =>
-          set((state) => ({
-            selectedExercises: state.selectedExercises.filter(
-              (ex) => ex.name !== exerciseName
-            ),
-          })),
-
-      addSetToExercise: (exerciseIndex) =>
-        set((state) => {
-          const updatedExercises = [...state.selectedExercises];
-          if (updatedExercises[exerciseIndex]) {
-            updatedExercises[exerciseIndex].sets.push({
-              kg: 0,
-              reps: 0,
-              included: true,
-            });
-          }
-          return { selectedExercises: updatedExercises };
-        }),
-
-      removeSetFromExercise: (exerciseName, setId) =>
-        set((state) => {
-          const updated = state.selectedExercises.map((ex) => {
-            if (ex.name === exerciseName) {
-              return {
-                ...ex,
-                sets: ex.sets.filter((_, i) => i !== setId),
-              };
-            }
-            return ex;
-          });
-          return { selectedExercises: updated };
-        }),
-
-      updateSetValue: (exerciseIndex, setIndex, field, value) =>
-        set((state) => {
-          const updatedExercises = [...state.selectedExercises];
-          if (
-            updatedExercises[exerciseIndex] &&
-            updatedExercises[exerciseIndex].sets[setIndex]
-          ) {
-            updatedExercises[exerciseIndex].sets[setIndex][field] = value;
-          }
-          return { selectedExercises: updatedExercises };
-        }),
-
-      updateRoutineTitle: (title) => set({ routineTitle: title }),
-
-      updateRoutineComment: (comment) => set({ routineComment: comment }),
-
-      clearRoutine: () =>
-        set({
-          selectedExercises: [],
-          routineTitle: "",
-          routineComment: "",
-        }),
-    }),
-    {
-      name: "workout",
-    }
-  )
-);
+export default exerciseSlice.reducer;

@@ -1,4 +1,4 @@
-import { Exercise } from "../types/exercise";
+import { Exercise } from "../types/Exercise";
   
   export const equipmentList = [
     "dumbbell",
@@ -21,184 +21,184 @@ import { Exercise } from "../types/exercise";
   export const exercises = [
     // Chest
     {
-      name: "Push-Ups",
-      equipment: "bodyweight",
-      muscle: "chest",
-      image: "/images/pushup.gif",
-    },
-    {
-      name: "Barbell Bench Press",
-      equipment: "barbell",
-      muscle: "chest",
-      image: "https://wger.de/media/exercise-images/20/Barbell-Bench-Press-1.png",
-    },
-    {
-      name: "Dumbbell Bench Press",
-      equipment: "dumbbell",
-      muscle: "chest",
-      image: "https://wger.de/media/exercise-images/96/Dumbbell-bench-press-1.png",
-    },
-    {
-      name: "Chest Flys",
-      equipment: "dumbbell",
-      muscle: "chest",
-      image: "https://wger.de/media/exercise-images/98/Dumbbell-Fly-1.png",
-    },
-    {
-      name: "Machine Chest Press",
-      equipment: "machine",
-      muscle: "chest",
-      image: "https://wger.de/media/exercise-images/222/Chest-Press-1.png",
-    },
-    {
-      name: "Incline Dumbbell Press",
-      equipment: "dumbbell",
-      muscle: "chest",
-      image: "https://wger.de/media/exercise-images/97/Incline-Dumbbell-Press-1.png",
-    },
-    {
-      name: "Decline Barbell Press",
-      equipment: "barbell",
-      muscle: "chest",
-      image: "https://wger.de/media/exercise-images/21/Decline-Barbell-Bench-Press-1.png",
-    },
-    {
-      name: "Cable Crossovers",
-      equipment: "machine",
-      muscle: "chest",
-      image: "https://wger.de/media/exercise-images/131/Cable-Crossover-1.png",
-    },
-    {
-      name: "Pec Deck",
-      equipment: "machine",
-      muscle: "chest",
-      image: "https://wger.de/media/exercise-images/99/Pec-Deck-1.png",
-    },
-    {
-      name: "Kettlebell Floor Press",
-      equipment: "kettlebell",
-      muscle: "chest",
-      image: "https://wger.de/media/exercise-images/100/Kettlebell-Floor-Press-1.png",
-    },
+    name: "Push-Ups",
+    equipment: "bodyweight",
+    muscle: "chest",
+    image: "/images/pushup.gif",
+  },
+  {
+    name: "Barbell Bench Press",
+    equipment: "barbell",
+    muscle: "chest",
+    image: "/images/BenchPress.gif",
+  },
+  {
+    name: "Dumbbell Bench Press",
+    equipment: "dumbbell",
+    muscle: "chest",
+    image: "/images/dumbell-bench-press.gif",
+  },
+  {
+    name: "Chest Flys",
+    equipment: "dumbbell",
+    muscle: "chest",
+    image: "/images/chest-press.gif",
+  },
+  {
+    name: "Machine Chest Press",
+    equipment: "machine",
+    muscle: "chest",
+    image: "/images/machine-chest-press.gif",
+  },
+  {
+    name: "Incline Dumbbell Press",
+    equipment: "dumbbell",
+    muscle: "chest",
+    image: "/images/incline-dumbell-press.webp",
+  },
+  {
+    name: "Decline Barbell Press",
+    equipment: "barbell",
+    muscle: "chest",
+    image: "/images/decline-barbell-press.gif",
+  },
+  {
+    name: "Cable Crossovers",
+    equipment: "machine",
+    muscle: "chest",
+    image: "/images/cable-crossovers.webp",
+  },
+  {
+    name: "Pec Deck",
+    equipment: "machine",
+    muscle: "chest",
+    image: "/images/pec-deck.gif",
+  },
+  {
+    name: "Kettlebell Floor Press",
+    equipment: "kettlebell",
+    muscle: "chest",
+    image: "/images/kettlebell-floor-press.webp",
+  },
+
+  // Back
+  {
+    name: "Pull-Ups",
+    equipment: "bodyweight",
+    muscle: "back",
+    image: "/images/pull-up.gif",
+  },
+  {
+    name: "Barbell Deadlift",
+    equipment: "barbell",
+    muscle: "back",
+    image: "/images/deadlift.gif",
+  },
+  {
+    name: "Seated Cable Rows",
+    equipment: "machine",
+    muscle: "back",
+    image: "/images/seated-cable-row.gif",
+  },
+  {
+    name: "Dumbbell Bent-Over Rows",
+    equipment: "dumbbell",
+    muscle: "back",
+    image: "/images/dumbell-bent-over-row.gif",
+  },
+  {
+    name: "Lat Pulldown",
+    equipment: "machine",
+    muscle: "back",
+    image:"/images/lat-pulldown.gif",
+  },
+  {
+    name: "T-Bar Row",
+    equipment: "barbell",
+    muscle: "back",
+    image: "/images/t-bar-row.gif",
+  },
   
-    // Back
-    {
-      name: "Pull-Ups",
-      equipment: "bodyweight",
-      muscle: "back",
-      image: "https://wger.de/media/exercise-images/81/Pull-up-1.png",
-    },
-    {
-      name: "Barbell Deadlift",
-      equipment: "barbell",
-      muscle: "back",
-      image: "https://wger.de/media/exercise-images/70/Deadlift-1.png",
-    },
-    {
-      name: "Seated Cable Rows",
-      equipment: "machine",
-      muscle: "back",
-      image: "https://wger.de/media/exercise-images/218/Seated-Cable-Row-1.png",
-    },
-    {
-      name: "Dumbbell Bent-Over Rows",
-      equipment: "dumbbell",
-      muscle: "back",
-      image: "https://wger.de/media/exercise-images/71/Dumbbell-Bent-Over-Row-1.png",
-    },
-    {
-      name: "Lat Pulldown",
-      equipment: "machine",
-      muscle: "back",
-      image: "https://wger.de/media/exercise-images/83/Lat-Pulldown-1.png",
-    },
-    {
-      name: "T-Bar Row",
-      equipment: "barbell",
-      muscle: "back",
-      image: "https://wger.de/media/exercise-images/84/T-Bar-Row-1.png",
-    },
-    
-    {
-      name: "Superman",
-      equipment: "bodyweight",
-      muscle: "back",
-      image: "https://wger.de/media/exercise-images/86/Superman-1.png",
-    },
-    {
-      name: "Kettlebell Swings",
-      equipment: "kettlebell",
-      muscle: "back",
-      image: "https://wger.de/media/exercise-images/117/Kettlebell-Swing-1.png",
-    },
-    {
-      name: "One-Arm Dumbbell Row",
-      equipment: "dumbbell",
-      muscle: "back",
-      image: "https://wger.de/media/exercise-images/87/One-Arm-Dumbbell-Row-1.png",
-    },
-  
-    // Biceps
-    {
-      name: "Barbell Bicep Curl",
-      equipment: "barbell",
-      muscle: "biceps",
-      image: "https://wger.de/media/exercise-images/226/Barbell-Curl-1.png",
-    },
-    {
-      name: "Dumbbell Bicep Curl",
-      equipment: "dumbbell",
-      muscle: "biceps",
-      image: "https://wger.de/media/exercise-images/30/Dumbbell-Curl-1.png",
-    },
-    {
-      name: "Hammer Curl",
-      equipment: "dumbbell",
-      muscle: "biceps",
-      image: "https://wger.de/media/exercise-images/88/Hammer-Curl-1.png",
-    },
-    {
-      name: "Concentration Curl",
-      equipment: "dumbbell",
-      muscle: "biceps",
-      image: "https://wger.de/media/exercise-images/89/Concentration-Curl-1.png",
-    },
-    {
-      name: "Preacher Curl",
-      equipment: "barbell",
-      muscle: "biceps",
-      image: "https://wger.de/media/exercise-images/90/Preacher-Curl-1.png",
-    },
-    {
-      name: "Cable Curl",
-      equipment: "machine",
-      muscle: "biceps",
-      image: "https://wger.de/media/exercise-images/91/Cable-Curl-1.png",
-    },
-    {
-      name: "Zottman Curl",
-      equipment: "dumbbell",
-      muscle: "biceps",
-      image: "https://wger.de/media/exercise-images/92/Zottman-Curl-1.png",
-    },
-    {
-      name: "Chin-Ups",
-      equipment: "bodyweight",
-      muscle: "biceps",
-      image: "https://wger.de/media/exercise-images/93/Chin-up-1.png",
-    },
-    {
-      name: "Kettlebell Curl",
-      equipment: "kettlebell",
-      muscle: "biceps",
-      image: "https://wger.de/media/exercise-images/94/Kettlebell-Curl-1.png",
-    },
-    {
-      name: "Incline Dumbbell Curl",
-      equipment: "dumbbell",
-      muscle: "biceps",
-      image: "https://wger.de/media/exercise-images/95/Incline-Dumbbell-Curl-1.png",
-    },
+  {
+    name: "Superman",
+    equipment: "bodyweight",
+    muscle: "back",
+    image: "/images/superman.gif",
+  },
+  {
+    name: "Kettlebell Swings",
+    equipment: "kettlebell",
+    muscle: "back",
+    image: "/images/kettlebell-swing.webp",
+  },
+  {
+    name: "One-Arm Dumbbell Row",
+    equipment: "dumbbell",
+    muscle: "back",
+    image: "/images/one-arm-dumbell-row.webp",
+  },
+
+  // Biceps
+  {
+    name: "Barbell Bicep Curl",
+    equipment: "barbell",
+    muscle: "biceps",
+    image: "/images/barbell-bicep-curl.gif",
+  },
+  {
+    name: "Dumbbell Bicep Curl",
+    equipment: "dumbbell",
+    muscle: "biceps",
+    image: "/images/bicep-curls.gif",
+  },
+  {
+    name: "Hammer Curl",
+    equipment: "dumbbell",
+    muscle: "biceps",
+    image: "/images/hammer-curl.gif",
+  },
+  {
+    name: "Concentration Curl",
+    equipment: "dumbbell",
+    muscle: "biceps",
+    image: "/images/concentration-curl.webp",
+  },
+  {
+    name: "Preacher Curl",
+    equipment: "barbell",
+    muscle: "biceps",
+    image: "/images/preacher-curl.webp",
+  },
+  {
+    name: "Cable Curl",
+    equipment: "machine",
+    muscle: "biceps",
+    image: "/images/cable-curl.webp",
+  },
+  {
+    name: "Zottman Curl",
+    equipment: "dumbbell",
+    muscle: "biceps",
+    image: "/images/zottman-curl.gif",
+  },
+  {
+    name: "Chin-Ups",
+    equipment: "bodyweight",
+    muscle: "biceps",
+    image: "/images/chinups.gif",
+  },
+  {
+    name: "Kettlebell Curl",
+    equipment: "kettlebell",
+    muscle: "biceps",
+    image: "/images/kettlebell-curl.webp",
+  },
+  {
+    name: "Incline Dumbbell Curl",
+    equipment: "dumbbell",
+    muscle: "biceps",
+    image: "/images/Incline-Dumbell-Curl.webp",
+  },
   
     // Triceps
     {
