@@ -1,19 +1,40 @@
-
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/buttons/button";
 import { Input } from "@/components/forms/input";
 import { Card } from "@/components/cards/card";
 import { LockKeyhole, Mail } from "lucide-react";
-
+import { useAuth } from "../hooks/useAuth";
+import { toast } from "sonner";
+import { authService } from "../services/authService";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
+  const { login } = useAuth();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle login logic here
+    setIsLoading(true);
+
+    try {
+      const data = await authService.login({ email, password });
+      
+      // Store user data and token
+      login(data.user, data.token);
+      
+      // Show success message
+      toast.success("Login successful!");
+      
+      // Redirect to dashboard
+      navigate("/dashboard");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Login failed");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -36,6 +57,7 @@ const Login = () => {
                   onChange={(e) => setEmail(e.target.value)}
                   className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-gray-400"
                   required
+                  disabled={isLoading}
                 />
               </div>
             </div>
@@ -50,6 +72,7 @@ const Login = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-gray-400"
                   required
+                  disabled={isLoading}
                 />
               </div>
             </div>
@@ -57,8 +80,9 @@ const Login = () => {
             <Button
               type="submit"
               className="w-full bg-red-600 hover:bg-red-700 text-white"
+              disabled={isLoading}
             >
-              Sign in
+              {isLoading ? "Signing in..." : "Sign in"}
             </Button>
           </form>
 

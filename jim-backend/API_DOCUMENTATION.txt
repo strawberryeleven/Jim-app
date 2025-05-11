@@ -1,0 +1,208 @@
+JIM BACKEND API DOCUMENTATION
+===========================
+
+Base URL: http://localhost:5000
+
+Authentication
+-------------
+All protected routes require a JWT token in the Authorization header:
+Authorization: Bearer <your-token>
+
+1. Register User
+---------------
+Endpoint: POST /api/auth/register
+Description: Register a new user
+Headers:
+  Content-Type: application/json
+
+Request Body:
+{
+  "name": "John Doe",
+  "email": "john@example.com",
+  "password": "Test@123"
+}
+
+Response (201 Created):
+{
+  "success": true,
+  "user": {
+    "id": "user_id_here",
+    "email": "john@example.com",
+    "name": "John Doe"
+  },
+  "token": "jwt_token_here"
+}
+
+Error Response (400 Bad Request):
+{
+  "success": false,
+  "error": "Email already exists",
+  "code": "AUTH002"
+}
+
+2. Login User
+------------
+Endpoint: POST /api/auth/login
+Description: Login an existing user
+Headers:
+  Content-Type: application/json
+
+Request Body:
+{
+  "email": "john@example.com",
+  "password": "Test@123"
+}
+
+Response (200 OK):
+{
+  "success": true,
+  "user": {
+    "id": "user_id_here",
+    "email": "john@example.com",
+    "name": "John Doe"
+  },
+  "token": "jwt_token_here"
+}
+
+Error Responses:
+- 401 Unauthorized:
+{
+  "success": false,
+  "error": "Invalid credentials",
+  "code": "AUTH001"
+}
+- 404 Not Found:
+{
+  "success": false,
+  "error": "Account not found",
+  "code": "AUTH005"
+}
+- 403 Forbidden:
+{
+  "success": false,
+  "error": "Account is inactive",
+  "code": "AUTH006"
+}
+
+3. Verify Token
+--------------
+Endpoint: GET /api/auth/verify
+Description: Verify the current user's token
+Headers:
+  Authorization: Bearer <your-token>
+
+Response (200 OK):
+{
+  "success": true,
+  "user": {
+    "id": "user_id_here",
+    "email": "john@example.com",
+    "name": "John Doe"
+  }
+}
+
+Error Response (401 Unauthorized):
+{
+  "success": false,
+  "error": "Invalid or expired token",
+  "code": "AUTH004"
+}
+
+4. Logout User
+-------------
+Endpoint: POST /api/auth/logout
+Description: Logout the current user
+Headers:
+  Authorization: Bearer <your-token>
+
+Response (200 OK):
+{
+  "success": true,
+  "message": "Logged out successfully"
+}
+
+Error Response (401 Unauthorized):
+{
+  "success": false,
+  "error": "Not authorized, no token",
+  "code": "AUTH003"
+}
+
+Rate Limiting
+------------
+- Login: 5 requests per minute
+- Register: 3 requests per minute
+
+Error Codes
+----------
+AUTH001: Invalid credentials
+AUTH002: Email already exists
+AUTH003: No token provided
+AUTH004: Invalid or expired token
+AUTH005: Account not found
+AUTH006: Account is inactive
+AUTH007: Too many requests
+
+Security Features
+---------------
+1. Password Requirements:
+   - Minimum 8 characters
+   - At least one uppercase letter
+   - At least one number
+   - At least one special character
+
+2. JWT Token:
+   - Access Token: 24 hours validity
+   - Refresh Token: 7 days validity
+   - Stored in HTTP-only cookies
+
+3. CORS Configuration:
+   - Origin: http://localhost:8080
+   - Credentials: true
+   - Methods: GET, POST, PUT, DELETE, OPTIONS
+   - Headers: Content-Type, Authorization
+
+Example Frontend Usage
+--------------------
+Using fetch:
+```javascript
+// Login example
+fetch('http://localhost:5000/api/auth/login', {
+  method: 'POST',
+  credentials: 'include',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    email: 'john@example.com',
+    password: 'Test@123'
+  })
+})
+.then(response => response.json())
+.then(data => console.log(data))
+.catch(error => console.error('Error:', error));
+```
+
+Using axios:
+```javascript
+// Login example
+axios.post('http://localhost:5000/api/auth/login', {
+  email: 'john@example.com',
+  password: 'Test@123'
+}, {
+  withCredentials: true,
+  headers: {
+    'Content-Type': 'application/json'
+  }
+})
+.then(response => console.log(response.data))
+.catch(error => console.error('Error:', error));
+```
+
+Notes
+-----
+1. All timestamps are in ISO 8601 format
+2. All IDs are MongoDB ObjectIDs
+3. All error responses include a success flag and error code
+4. Protected routes require a valid JWT token
+5. Refresh tokens are automatically handled via HTTP-only cookies 

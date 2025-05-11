@@ -3,11 +3,17 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/buttons/button";
 import { Card } from "@/components/cards/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/Avatar";
-import { Bell, Home as HomeIcon, Plus, Search, X } from "lucide-react";
+import { Bell, Home as HomeIcon, Plus, Search, X, LogOut, Shield } from "lucide-react";
 import { Athlete } from "@/types/Athlete";
+import { useAuth } from "../../hooks/useAuth";
+import { authService } from "../../services/authService";
+import { toast } from "sonner";
 
 const Home = () => {
   const navigate = useNavigate();
+  const { logout: authLogout } = useAuth();
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [suggestedAthletes, setSuggestedAthletes] = useState<Athlete[]>([
     {
       id: "1",
@@ -31,6 +37,36 @@ const Home = () => {
       isFollowing: false
     }
   ]);
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      await authService.logout();
+      authLogout();
+      toast.success("Logged out successfully");
+      navigate("/login");
+    } catch (error) {
+      toast.error("Failed to logout");
+      console.error("Logout error:", error);
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
+
+  const handleVerifyToken = async () => {
+    setIsVerifying(true);
+    try {
+      const response = await authService.verifyToken();
+      toast.success("Token is valid!", {
+        description: `Logged in as ${response.user.name}`
+      });
+    } catch (error) {
+      toast.error("Token verification failed");
+      console.error("Token verification error:", error);
+    } finally {
+      setIsVerifying(false);
+    }
+  };
 
   const toggleFollow = (athleteId: string) => {
     setSuggestedAthletes(athletes => 
@@ -65,6 +101,26 @@ const Home = () => {
           Home
         </Button>
         <div className="flex space-x-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleVerifyToken}
+            disabled={isVerifying}
+            className="text-white hover:bg-zinc-800"
+            title="Verify JWT Token"
+          >
+            <Shield className="h-6 w-6" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleLogout}
+            disabled={isLoggingOut}
+            className="text-white hover:bg-zinc-800"
+            title="Logout"
+          >
+            <LogOut className="h-6 w-6" />
+          </Button>
           <Search className="h-6 w-6" />
           <Bell className="h-6 w-6" />
         </div>
