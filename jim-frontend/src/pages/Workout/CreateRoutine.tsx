@@ -1,4 +1,4 @@
-import { useState,useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { v4 as uuidv4 } from 'uuid';
 import { Button } from "@/components/buttons/button";
@@ -43,10 +43,6 @@ const CreateRoutine = () => {
   const { toast } = useToast();
   const dispatch = useAppDispatch();
 
-  useEffect(() => {
-    dispatch(clearRoutine());
-  }, [dispatch]);
-  
   const routineTitle = useAppSelector(state => state.exercises.routineTitle);
   const routineComment = useAppSelector(state => state.exercises.routineComment);
   const selectedExercises = useAppSelector(state => state.exercises.selectedExercises);
@@ -73,10 +69,8 @@ const CreateRoutine = () => {
       createdAt: Date.now(),
     };
 
-    console.log(newRoutine.id);
-
     dispatch(addRoutine(newRoutine));
-    
+
     toast({
       title: "Routine Saved",
       description: `${trimmedTitle} has been saved successfully.`,
@@ -101,7 +95,7 @@ const CreateRoutine = () => {
   };
 
   return (
-    <div className="min-h-screen text-white">
+    <div className="min-h-screen flex flex-col text-white">
       {/* Header */}
       <div className="flex justify-between items-center p-4 border-b border-gray-800">
         <Button
@@ -120,78 +114,81 @@ const CreateRoutine = () => {
         </Button>
       </div>
 
-      {/* Title input */}
-      <div className="p-4">
-        <Input
-          placeholder="Routine title"
-          value={routineTitle}
-          onChange={(e) => dispatch(updateRoutineTitle(e.target.value))}
-          className="bg-transparent border-b border-gray-700 rounded-none px-0 text-xl font-medium focus-visible:ring-0 focus-visible:border-gray-500"
-        />
-      </div>
+      {/* Scrollable content */}
+      <div className="flex-1 overflow-y-auto">
+        {/* Title input */}
+        <div className="p-4">
+          <Input
+            placeholder="Routine title"
+            value={routineTitle}
+            onChange={(e) => dispatch(updateRoutineTitle(e.target.value))}
+            className="bg-transparent border-b border-gray-700 rounded-none px-0 text-xl font-medium focus-visible:ring-0 focus-visible:border-gray-500"
+          />
+        </div>
 
-      {/* Routine comment input */}
-      <div className="p-4">
-        <Textarea
-          placeholder="Add comments about your routine (optional)"
-          value={routineComment}
-          onChange={(e) => dispatch(updateRoutineComment(e.target.value))}
-          className="bg-transparent border-b border-gray-700 rounded-none px-0 text-lg focus-visible:ring-0 focus-visible:border-gray-500"
-        />
-      </div>
+        {/* Routine comment input */}
+        <div className="p-4">
+          <Textarea
+            placeholder="Add comments about your routine (optional)"
+            value={routineComment}
+            onChange={(e) => dispatch(updateRoutineComment(e.target.value))}
+            className="bg-transparent border-b border-gray-700 rounded-none px-0 text-lg focus-visible:ring-0 focus-visible:border-gray-500"
+          />
+        </div>
 
-      {/* Exercises list */}
-      <div className="px-4 mt-4 space-y-8">
-        {selectedExercises.length > 0 ? (
-          selectedExercises.map((exercise, index) => (
-            <ExerciseCard2
-              key={exercise.name}
-              exercise={exercise}
-              index={index}
-              addSetToExercise={(arg) => dispatch(addSetToExercise(arg))}
-              updateSetValue={(arg) => dispatch(updateSetValue(arg))}
-              removeSetFromExercise={(_, setIndex) =>
-                dispatch(removeSetFromExercise({ name: exercise.name, setIndex }))
-              }
-              removeExercise={(name) => dispatch(removeExercise(name))}
-            />
-          ))
-        ) : (
-          <div className="flex flex-col items-center justify-center mt-12 px-6 text-center">
-            <div className="text-gray-500 text-5xl mb-6">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="64"
-                height="64"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M6.5 6.5h11" />
-                <path d="M20 15V9c0-.6-.4-1-1-1h-2a1 1 0 0 0-1 1v6c0 .6.4 1 1 1h2c.6 0 1-.4 1-1Z" />
-                <path d="M4 15V9c0-.6.4-1 1-1h2c.6 0 1 .4 1 1v6c0 .6-.4 1-1 1H5c-.6 0-1-.4-1-1Z" />
-                <path d="M8 9h8" />
-                <path d="M8 15h8" />
-              </svg>
+        {/* Exercises list */}
+        <div className="px-4 mt-4 space-y-8">
+          {selectedExercises.length > 0 ? (
+            selectedExercises.map((exercise, index) => (
+              <ExerciseCard2
+                key={exercise.name}
+                exercise={exercise}
+                index={index}
+                addSetToExercise={(arg) => dispatch(addSetToExercise(arg))}
+                updateSetValue={(arg) => dispatch(updateSetValue(arg))}
+                removeSetFromExercise={(_, setIndex) =>
+                  dispatch(removeSetFromExercise({ name: exercise.name, setIndex }))
+                }
+                removeExercise={(name) => dispatch(removeExercise(name))}
+              />
+            ))
+          ) : (
+            <div className="flex flex-col items-center justify-center mt-12 px-6 text-center">
+              <div className="text-gray-500 text-5xl mb-6">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="64"
+                  height="64"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M6.5 6.5h11" />
+                  <path d="M20 15V9c0-.6-.4-1-1-1h-2a1 1 0 0 0-1 1v6c0 .6.4 1 1 1h2c.6 0 1-.4 1-1Z" />
+                  <path d="M4 15V9c0-.6.4-1 1-1h2c.6 0 1 .4 1 1v6c0 .6-.4 1-1 1H5c-.6 0-1-.4-1-1Z" />
+                  <path d="M8 9h8" />
+                  <path d="M8 15h8" />
+                </svg>
+              </div>
+              <p className="text-gray-500 text-lg">
+                Get started by adding an exercise to your routine.
+              </p>
             </div>
-            <p className="text-gray-500 text-lg">
-              Get started by adding an exercise to your routine.
-            </p>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
 
-      {/* Add Exercise Button (Moved Below the Exercise Cards) */}
-      <div className="px-4 py-6">
-        <Button
-          className="w-full bg-blue-500 hover:bg-blue-600 text-white py-6 text-lg font-medium rounded-xl"
-          onClick={addSelectedExercises}
-        >
-          <Plus className="mr-2" size={24} /> Add exercise
-        </Button>
+        {/* Add Exercise Button */}
+        <div className="px-4 py-6">
+          <Button
+            className="w-full bg-blue-500 hover:bg-blue-600 text-white py-6 text-lg font-medium rounded-xl"
+            onClick={addSelectedExercises}
+          >
+            <Plus className="mr-2" size={24} /> Add exercise
+          </Button>
+        </div>
       </div>
 
       {/* Cancel Confirmation */}

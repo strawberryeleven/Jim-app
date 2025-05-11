@@ -32,6 +32,7 @@ import Statistics from "./pages/Profile/Statistics";
 import MeasurementsPage from "./pages/Profile/MeasurementsPage";
 import Calendar from "./pages/Profile/Calendar";
 import WorkoutDetailPage from "./pages/WorkoutDetailPage";
+import ViewRoutine from "./pages/Workout/ViewRoutine";
 
 const queryClient = new QueryClient();
 
@@ -55,7 +56,8 @@ const App = () => (
             <Route path="/add-exercise2" element={<AddRoutineExercise />} />
             <Route path="/edit-routine" element={<EditRoutine />} />
             <Route path="/edit-routine/:id" element={<EditRoutine />} />
-
+             <Route path="/view-routine/:id" element={<ViewRoutine />} />
+            
             <Route path="/log-workout" element={<LogWorkout />} />
             <Route path="/add-exercise" element={<AddExercise />} />
             <Route path="*" element={<NotFound />} />

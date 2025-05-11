@@ -32,9 +32,9 @@ const RoutineCard: React.FC<RoutineCardProps> = ({ routine }) => {
   const dispatch = useAppDispatch();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
-  const handleStartRoutine = () => {
-    // Navigate to start the routine (implement later)
-    console.log(`Starting routine: ${routine.title}`);
+  const handleViewRoutine = () => {
+    // Navigate to the View Routine page and pass routine data
+    navigate(`/view-routine/${routine.id}`, { state: { routine } });
   };
 
   const handleEdit = () => {
@@ -89,10 +89,10 @@ const RoutineCard: React.FC<RoutineCardProps> = ({ routine }) => {
           <p className="text-sm text-gray-400">{primaryExercise}</p>
         </div>
         <Button
-          onClick={handleStartRoutine}
+          onClick={handleViewRoutine}
           className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-t-none"
         >
-          Start Routine
+          View Routine
         </Button>
       </Card>
 

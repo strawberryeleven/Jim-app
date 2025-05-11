@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/buttons/button";
 import { Input } from "@/components/forms/input";
 import { Textarea } from "@/components/forms/textarea";
-import { Plus, AlertCircle } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useAppSelector, useAppDispatch } from "@/hooks/redux-hooks";
 import { updateRoutine } from "@/store/routineSlice";
 import {
@@ -13,17 +13,8 @@ import {
   updateSetValue,
   removeSetFromExercise,
   removeExercise,
-  clearRoutine
+  clearRoutine,
 } from "@/store/RoutineExerciseStore";
-import { useToast } from "@/hooks/use-toast";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/dialogs/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -40,36 +31,35 @@ import ExerciseCard2 from "@/components/workout/ExerciseCard2";
 const EditRoutine = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { toast } = useToast();
   const dispatch = useAppDispatch();
-  
-  const routines = useAppSelector(state => state.routines.routines);
-  const routineTitle = useAppSelector(state => state.exercises.routineTitle);
-  const routineComment = useAppSelector(state => state.exercises.routineComment);
-  const selectedExercises = useAppSelector(state => state.exercises.selectedExercises);
+
+  const routines = useAppSelector((state) => state.routines.routines);
+  const routineTitle = useAppSelector((state) => state.exercises.routineTitle);
+  const routineComment = useAppSelector((state) => state.exercises.routineComment);
+  const selectedExercises = useAppSelector((state) => state.exercises.selectedExercises);
 
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [showMissingTitleDialog, setShowMissingTitleDialog] = useState(false);
   const [routineNotFound, setRoutineNotFound] = useState(false);
+  const [showUpdateDialog, setShowUpdateDialog] = useState(false);
 
   useEffect(() => {
     if (id) {
-      const routine = routines.find(r => r.id === id);
-      
+      const routine = routines.find((r) => r.id === id);
+
       if (routine) {
         dispatch(clearRoutine());
         dispatch(updateRoutineTitle(routine.title));
-        dispatch(updateRoutineComment(routine.comment || ''));
-        
-        // Manually load each exercise along with its image data
-        routine.exercises.forEach(exercise => {
+        dispatch(updateRoutineComment(routine.comment || ""));
+
+        routine.exercises.forEach((exercise) => {
           dispatch({
-            type: 'exercises/addExercise',
+            type: "exercises/addExercise",
             payload: {
               name: exercise.name,
               sets: [...exercise.sets],
-             image: exercise.image || '', // Assuming the exercise has an image field
-            }
+              image: exercise.image || "",
+            },
           });
         });
       } else {
@@ -95,19 +85,12 @@ const EditRoutine = () => {
         title: trimmedTitle,
         comment: routineComment,
         exercises: selectedExercises,
-        createdAt: routines.find(r => r.id === id)?.createdAt || Date.now(),
+        createdAt: routines.find((r) => r.id === id)?.createdAt || Date.now(),
       };
 
       dispatch(updateRoutine(updatedRoutine));
-      
-      toast({
-        title: "Routine Updated",
-        description: `${trimmedTitle} has been updated successfully.`,
-      });
+      setShowUpdateDialog(true); // Show confirmation dialog
     }
-
-    dispatch(clearRoutine());
-    navigate("/workout");
   };
 
   const handleCancel = () => {
@@ -117,15 +100,17 @@ const EditRoutine = () => {
   const confirmDiscard = () => {
     dispatch(clearRoutine());
     setShowCancelDialog(false);
-    navigate('/workout');
+    navigate("/workout");
   };
 
   if (routineNotFound) {
     return (
       <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-4">
         <h2 className="text-2xl font-bold mb-4">Routine Not Found</h2>
-        <p className="text-gray-400 mb-6">The routine you're trying to edit doesn't exist.</p>
-        <Button 
+        <p className="text-gray-400 mb-6">
+          The routine you're trying to edit doesn't exist.
+        </p>
+        <Button
           onClick={() => navigate("/workout")}
           className="bg-blue-500 hover:bg-blue-600"
         >
@@ -229,7 +214,7 @@ const EditRoutine = () => {
         </Button>
       </div>
 
-      {/* Cancel Confirmation */}
+      {/* Cancel Confirmation Dialog */}
       <AlertDialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
         <AlertDialogContent className="bg-zinc-900 border-gray-800 text-white">
           <AlertDialogHeader>
@@ -239,9 +224,7 @@ const EditRoutine = () => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="mt-4">
-            <AlertDialogCancel
-              className="bg-transparent border-2 border-gray-600 text-white hover:bg-transparent"
-            >
+            <AlertDialogCancel className="bg-transparent border-2 border-gray-600 text-white hover:bg-transparent">
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
@@ -254,7 +237,7 @@ const EditRoutine = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Missing Title Warning */}
+      {/* Missing Title Warning Dialog */}
       <AlertDialog open={showMissingTitleDialog} onOpenChange={setShowMissingTitleDialog}>
         <AlertDialogContent className="bg-zinc-900 border-gray-800 text-white">
           <AlertDialogHeader>
@@ -269,6 +252,30 @@ const EditRoutine = () => {
               onClick={() => setShowMissingTitleDialog(false)}
             >
               Got it!
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Routine Updated Dialog */}
+      <AlertDialog open={showUpdateDialog} onOpenChange={setShowUpdateDialog}>
+        <AlertDialogContent className="bg-zinc-900 border-gray-800 text-white">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-xl">Routine Updated</AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-400">
+              Your routine has been successfully updated.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="mt-4">
+            <AlertDialogAction
+              className="bg-blue-500 hover:bg-blue-600 text-white"
+              onClick={() => {
+                dispatch(clearRoutine());
+                setShowUpdateDialog(false);
+                navigate("/workout");
+              }}
+            >
+              OK
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
