@@ -7,6 +7,7 @@ export interface Exercise {
     reps: number;
     isCompleted?: boolean;
   }[];
+   image?: string;
 }
 
 export interface Routine {

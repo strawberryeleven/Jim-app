@@ -61,13 +61,14 @@ const EditRoutine = () => {
         dispatch(updateRoutineTitle(routine.title));
         dispatch(updateRoutineComment(routine.comment || ''));
         
-        // Manually load each exercise
+        // Manually load each exercise along with its image data
         routine.exercises.forEach(exercise => {
           dispatch({
             type: 'exercises/addExercise',
             payload: {
               name: exercise.name,
-              sets: [...exercise.sets]
+              sets: [...exercise.sets],
+             image: exercise.image || '', // Assuming the exercise has an image field
             }
           });
         });
@@ -184,7 +185,6 @@ const EditRoutine = () => {
               index={index}
               addSetToExercise={(arg) => dispatch(addSetToExercise(arg))}
               updateSetValue={(arg) => dispatch(updateSetValue(arg))}
-              
               removeSetFromExercise={(_, setIndex) =>
                 dispatch(removeSetFromExercise({ name: exercise.name, setIndex }))
               }
@@ -239,12 +239,14 @@ const EditRoutine = () => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="mt-4">
-            <AlertDialogCancel className="bg-transparent text-white border-gray-700 hover:bg-zinc-800">
+            <AlertDialogCancel
+              className="bg-transparent border-2 border-gray-600 text-white hover:bg-transparent"
+            >
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
+              className="bg-red-600 hover:bg-red-700 text-white"
               onClick={confirmDiscard}
-              className="bg-red-500 hover:bg-red-600 text-white border-none"
             >
               Discard
             </AlertDialogAction>
@@ -252,28 +254,25 @@ const EditRoutine = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Missing Title or Exercises Dialog */}
-      <Dialog open={showMissingTitleDialog} onOpenChange={setShowMissingTitleDialog}>
-        <DialogContent className="bg-zinc-900 border-gray-800 text-white">
-          <DialogHeader>
-            <DialogTitle className="flex items-center text-xl">
-              <AlertCircle className="h-6 w-6 text-yellow-500 mr-2" />
-              Incomplete Routine
-            </DialogTitle>
-            <DialogDescription className="text-gray-300 pt-2">
-              Please enter a routine title and add at least one exercise before saving.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
+      {/* Missing Title Warning */}
+      <AlertDialog open={showMissingTitleDialog} onOpenChange={setShowMissingTitleDialog}>
+        <AlertDialogContent className="bg-zinc-900 border-gray-800 text-white">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-xl">Missing Title</AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-400">
+              Please give your routine a title and add at least one exercise before saving.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="mt-4">
+            <AlertDialogAction
+              className="bg-blue-500 hover:bg-blue-600 text-white"
               onClick={() => setShowMissingTitleDialog(false)}
-              className="w-full bg-blue-500 hover:bg-blue-600"
             >
-              OK
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+              Got it!
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

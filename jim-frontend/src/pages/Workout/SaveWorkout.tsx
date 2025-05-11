@@ -7,16 +7,15 @@ import { Input } from "@/components/forms/input";
 import { useExerciseStore } from "@/store/ExerciseStore";
 import { useToast } from "@/hooks/use-toast";
 import { formatDuration } from "@/utils/FormatTime";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/popover";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/cards/hover-card";
 import DiscardWorkoutDialog from "@/components/workout/DiscardWorkoutDialog"; // Import the dialog component
+import { useDispatch } from "react-redux";
+import { addWorkoutLog } from "@/store/workoutLogSlice";
 
 const SaveWorkout = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const { toast } = useToast();
   const { selectedExercises, clearExercises, startTime, resetStartTime } = useExerciseStore();
 
@@ -65,6 +64,21 @@ const SaveWorkout = () => {
     savedWorkouts.push(workout);
     localStorage.setItem("workouts", JSON.stringify(savedWorkouts));
 
+    if (visibility === "Private") {
+      const date = new Date().toLocaleDateString("en-US");
+      const log = {
+        title,
+        time: formattedDuration,
+        volume: `${volume} kg`,
+        exercises: selectedExercises.map(exercise => ({
+          sets: exercise.sets.length,
+          name: exercise.name,
+          image: exercise.image || "", // Provide image data if available
+        })),
+      };
+      dispatch(addWorkoutLog({ date, log }));
+    }
+
     toast({
       title: "Workout saved!",
       description: "Your workout has been successfully saved.",
@@ -72,7 +86,7 @@ const SaveWorkout = () => {
 
     clearExercises();
     resetStartTime();
-    navigate("/");
+    navigate("/workout");
   };
 
   const handleGoBack = () => navigate("/log-workout");

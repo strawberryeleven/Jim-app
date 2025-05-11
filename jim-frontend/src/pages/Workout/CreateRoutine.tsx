@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { v4 as uuidv4 } from 'uuid';
 import { Button } from "@/components/buttons/button";
@@ -42,6 +42,10 @@ const CreateRoutine = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    dispatch(clearRoutine());
+  }, [dispatch]);
   
   const routineTitle = useAppSelector(state => state.exercises.routineTitle);
   const routineComment = useAppSelector(state => state.exercises.routineComment);
@@ -180,8 +184,8 @@ const CreateRoutine = () => {
         )}
       </div>
 
-      {/* Add Exercise Button */}
-      <div className="fixed bottom-20 left-0 right-0 px-6">
+      {/* Add Exercise Button (Moved Below the Exercise Cards) */}
+      <div className="px-4 py-6">
         <Button
           className="w-full bg-blue-500 hover:bg-blue-600 text-white py-6 text-lg font-medium rounded-xl"
           onClick={addSelectedExercises}

@@ -11,7 +11,7 @@ interface Set {
 interface Exercise {
   name: string;
   sets: Set[];
-  image?: string; // <-- Added image field
+  image?: string | null; // Added image field
 }
 
 interface ExerciseCard2Props {
@@ -40,13 +40,18 @@ const ExerciseCard2: React.FC<ExerciseCard2Props> = ({
     <div className="bg-zinc-900 rounded-lg p-4">
       {/* Header with image and title */}
       <div className="flex items-start gap-4 mb-4">
-        {exercise.image && (
+        {exercise.image ? (
           <div className="w-20 h-20 bg-zinc-800 rounded-md overflow-hidden">
             <img
               src={exercise.image}
               alt={exercise.name}
               className="w-full h-full object-cover"
             />
+          </div>
+        ) : (
+          <div className="w-20 h-20 bg-zinc-800 rounded-md flex items-center justify-center">
+            {/* Placeholder if no image is available */}
+            <span className="text-gray-400">No Image</span>
           </div>
         )}
         <div className="flex-1 flex justify-between items-start">
