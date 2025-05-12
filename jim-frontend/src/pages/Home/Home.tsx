@@ -4,10 +4,17 @@ import { Button } from "@/components/buttons/button";
 import { Card } from "@/components/cards/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/Avatar";
 import { Bell, Home as HomeIcon, Plus, Search, X, LogOut, Shield } from "lucide-react";
-import { Athlete } from "@/types/Athlete";
 import { useAuth } from "../../hooks/useAuth";
 import { authService } from "../../services/authService";
 import { toast } from "sonner";
+
+export type Athlete = {
+  id: string;
+  username: string;
+  isFeatured: boolean;
+  profileImage: string;
+  isFollowing?: boolean;
+};
 
 const Home = () => {
   const navigate = useNavigate();

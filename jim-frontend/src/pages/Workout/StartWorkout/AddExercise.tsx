@@ -1,9 +1,9 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 import { Search, Plus, Check } from "lucide-react";
 import { Input } from "@/components/forms/input";
 import { Button } from "@/components/buttons/button";
 import { ScrollArea } from "@/components/utilities/scroll-area";
+import { useToast } from "@/components/tooltips/use-toast";
 import {
   Select,
   SelectContent,
@@ -12,22 +12,30 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/forms/select";
-import { exercises, equipmentList, muscleList } from "@/data/RoutineExerciseData";
-import { useAppDispatch, useAppSelector } from "@/hooks/redux-hooks";
-import { addExercise } from "@/store/exerciseSlice";
+import { exercises, equipmentList, muscleList } from "@/data/ExerciseData";
+import { useExerciseStore } from "@/store/WorkpoutExerciseStore";
+import { useNavigate } from "react-router-dom";
 
-const AddRoutineExercise = () => {
+const AddExercise = () => {
   const navigate = useNavigate();
-  const dispatch = useAppDispatch();
+  const { toast } = useToast();
 
-  const selectedExercises = useAppSelector((state) => state.exercises.selectedExercises);
-
+  const { addExercise, selectedExercises } = useExerciseStore();
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedEquipment, setSelectedEquipment] = useState("all-equipment");
-  const [selectedMuscle, setSelectedMuscle] = useState("all-muscles");
+  const [selectedEquipment, setSelectedEquipment] = useState<string>("all-equipment");
+  const [selectedMuscle, setSelectedMuscle] = useState<string>("all-muscles");
+  const [tempExercises, setTempExercises] = useState<typeof exercises>([]);
 
-  const isExerciseSelected = (exerciseName: string) => {
-    return selectedExercises.some((ex) => ex.name === exerciseName);
+  useEffect(() => {
+    setTempExercises(selectedExercises); // Load current exercises as temp
+  }, [selectedExercises]);
+
+  const handleEquipmentChange = (value: string) => {
+    setSelectedEquipment(value);
+  };
+
+  const handleMuscleChange = (value: string) => {
+    setSelectedMuscle(value);
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -36,24 +44,43 @@ const AddRoutineExercise = () => {
     setSelectedMuscle("all-muscles");
   };
 
+  const handleAddExercise = (exercise: typeof exercises[0]) => {
+    if (!tempExercises.some((ex) => ex.name === exercise.name)) {
+      setTempExercises((prev) => [...prev, exercise]);
+      toast({
+        title: "Exercise added",
+        description: `${exercise.name} has been added.`,
+      });
+    }
+  };
+
+  const handleRemoveExercise = (exercise: typeof exercises[0]) => {
+    setTempExercises((prev) => prev.filter((ex) => ex.name !== exercise.name));
+  };
+
+  const isExerciseSelected = (exerciseName: string) => {
+    return tempExercises.some((ex) => ex.name === exerciseName);
+  };
+
+  const handleDone = () => {
+    // Remove all old selected exercises from global store
+    selectedExercises.forEach((ex) => addExercise(ex, true));
+    // Add current selections to global store
+    tempExercises.forEach((ex) => addExercise(ex));
+    navigate(-1);
+  };
+
+  const handleCancel = () => {
+    navigate(-1); // Discard temp changes
+  };
+
   const filteredExercises = exercises.filter((exercise) => {
     const matchesSearch = exercise.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesEquipment =
-      selectedEquipment === "all-equipment" || exercise.equipment === selectedEquipment;
-    const matchesMuscle =
-      selectedMuscle === "all-muscles" || exercise.muscle === selectedMuscle;
+    const matchesEquipment = selectedEquipment === "all-equipment" || exercise.equipment === selectedEquipment;
+    const matchesMuscle = selectedMuscle === "all-muscles" || exercise.muscle === selectedMuscle;
 
     return matchesSearch && matchesEquipment && matchesMuscle;
   });
-
-  const handleAddExercise = (exercise: typeof exercises[0]) => {
-    if (!isExerciseSelected(exercise.name)) {
-      dispatch(addExercise({
-        ...exercise,
-        sets: [{ weight: '', reps: '' }],
-      }));
-    }
-  };
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -62,7 +89,7 @@ const AddRoutineExercise = () => {
           <Button
             variant="ghost"
             className="text-white hover:text-blue-400"
-            onClick={() => navigate(-1)}
+            onClick={handleCancel}
           >
             Cancel
           </Button>
@@ -70,7 +97,7 @@ const AddRoutineExercise = () => {
           <Button
             variant="ghost"
             className="text-blue-400 hover:text-blue-500"
-            onClick={() => navigate("/create-routine")}
+            onClick={handleDone}
           >
             Done
           </Button>
@@ -87,7 +114,7 @@ const AddRoutineExercise = () => {
         </div>
 
         <div className="grid grid-cols-2 gap-2">
-          <Select value={selectedEquipment} onValueChange={setSelectedEquipment}>
+          <Select value={selectedEquipment} onValueChange={handleEquipmentChange}>
             <SelectTrigger className="w-full bg-gray-200 text-black border-zinc-800">
               <SelectValue placeholder="All Equipment" />
             </SelectTrigger>
@@ -103,7 +130,7 @@ const AddRoutineExercise = () => {
             </SelectContent>
           </Select>
 
-          <Select value={selectedMuscle} onValueChange={setSelectedMuscle}>
+          <Select value={selectedMuscle} onValueChange={handleMuscleChange}>
             <SelectTrigger className="w-full bg-gray-200 text-black border-zinc-800">
               <SelectValue placeholder="All Muscles" />
             </SelectTrigger>
@@ -138,6 +165,7 @@ const AddRoutineExercise = () => {
                       className="w-full h-full object-cover"
                     />
                   </div>
+
                   <div className="flex-1">
                     <h3 className="font-medium">{exercise.name}</h3>
                     <p className="text-sm text-gray-400">
@@ -146,7 +174,13 @@ const AddRoutineExercise = () => {
                   </div>
 
                   {isExerciseSelected(exercise.name) ? (
-                    <Check className="w-6 h-6 text-green-500" />
+                    <Button
+                      variant="ghost"
+                      className="p-2 hover:bg-zinc-800 rounded-full"
+                      onClick={() => handleRemoveExercise(exercise)}
+                    >
+                      <Check className="w-6 h-6 text-green-500" />
+                    </Button>
                   ) : (
                     <Button
                       variant="ghost"
@@ -166,4 +200,4 @@ const AddRoutineExercise = () => {
   );
 };
 
-export default AddRoutineExercise;
+export default AddExercise;

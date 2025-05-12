@@ -4,14 +4,14 @@ import { ArrowLeft, Save, Camera, User, Trash, Check } from "lucide-react";
 import { Button } from "@/components/buttons/button";
 import { Textarea } from "@/components/forms/textarea";
 import { Input } from "@/components/forms/input";
-import { useExerciseStore } from "@/store/ExerciseStore";
+import { useExerciseStore } from "@/store/WorkpoutExerciseStore";
 import { useToast } from "@/hooks/use-toast";
 import { formatDuration } from "@/utils/FormatTime";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/popover";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/cards/hover-card";
 import DiscardWorkoutDialog from "@/components/workout/DiscardWorkoutDialog"; // Import the dialog component
 import { useDispatch } from "react-redux";
-import { addWorkoutLog } from "@/store/workoutLogSlice";
+import { addWorkoutLog } from "@/store/slices/WorkoutLogSlice";
 
 const SaveWorkout = () => {
   const navigate = useNavigate();

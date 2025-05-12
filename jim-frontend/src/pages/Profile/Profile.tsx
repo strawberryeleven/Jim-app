@@ -1,7 +1,7 @@
 import { Settings } from "lucide-react";
 import { Button } from "@/components/buttons/button";
 import { Link } from "react-router-dom";
-import WorkoutChart from "../Workout/WorkoutSummaryCard";
+import WorkoutChart from "../Workout/StartWorkout/WorkoutSummaryCard";
 import Dashboard from "./Dashboard";
 import WorkoutCard from "@/components/WorkoutCard";
 import { workouts } from "@/data/Workouts";

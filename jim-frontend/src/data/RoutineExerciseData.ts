@@ -1,4 +1,9 @@
-import { Exercise } from "../types/Exercise";
+export interface Exercise {
+    name: string;
+    muscle: string;
+    equipment: string;
+    image?: string;
+  }
   
   export const equipmentList = [
     "dumbbell",

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/buttons/button";
 import { PlusIcon, ArrowLeft } from "lucide-react";
-import { useExerciseStore } from "@/store/ExerciseStore";
+import { useExerciseStore } from "@/store/WorkpoutExerciseStore";
 import WorkoutStats from "@/components/workout/WorkoutStats";
 import EmptyWorkout from "@/components/workout/EmptyWorkout";
 import ExerciseCard from "@/components/workout/ExerciseCard";

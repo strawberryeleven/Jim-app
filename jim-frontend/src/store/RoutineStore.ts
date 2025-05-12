@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { Exercise } from './slices/routineSlice';
+import { Exercise } from './slices/RoutineSlice';
 
 interface ExerciseState {
   routineTitle: string;

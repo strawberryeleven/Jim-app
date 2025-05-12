@@ -2,7 +2,13 @@ import React, { useState, ChangeEvent, FormEvent } from "react";
 import { UploadCloud } from "lucide-react";
 import { Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
-import { Measurements } from "../../types/Measurements";
+
+export interface Measurements {
+  chest: string;
+  waist: string;
+  arms: string;
+  weight: string;
+}
 
 const MeasurementsPage: React.FC = () => {
   const [image, setImage] = useState<string | null>(null);

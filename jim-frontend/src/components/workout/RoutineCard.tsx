@@ -20,8 +20,8 @@ import {
   AlertDialogTitle,
 } from "@/components/dialogs/alert-dialog";
 import { useAppDispatch } from "@/hooks/redux-hooks";
-import { deleteRoutine } from "@/store/slices/routineSlice";
-import type { Routine } from "@/store/slices/routineSlice";
+import { deleteRoutine } from "@/store/slices/RoutineSlice";
+import type { Routine } from "@/store/slices/RoutineSlice";
 
 interface RoutineCardProps {
   routine: Routine;
