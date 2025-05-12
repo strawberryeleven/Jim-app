@@ -1,4 +1,8 @@
 import { API_ENDPOINTS } from '../config/api';
+import { getToken } from '../utils/auth';
+import { handleApiError } from '../utils/error';
+import { PaginatedResponse } from '../types/api';
+import { WorkoutLog } from '../types/workout';
 import { Workout } from './workoutService';
 
 export interface WorkoutLogExercise {
@@ -11,18 +15,6 @@ export interface WorkoutLogExercise {
   }[];
 }
 
-export interface WorkoutLog {
-  id: string;
-  workoutId: string;
-  userId: string;
-  exercises: WorkoutLogExercise[];
-  notes?: string;
-  duration: number;
-  date: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
 export interface WorkoutStats {
   totalWorkouts: number;
   totalDuration: number;
@@ -32,34 +24,121 @@ export interface WorkoutStats {
   recentWorkouts: WorkoutLog[];
 }
 
-interface PaginatedResponse<T> {
-  success: boolean;
-  logs: T[];
-  pagination: {
-    total: number;
-    page: number;
-    pages: number;
-  };
-}
+// Dummy API delay
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-interface ErrorResponse {
-  success: false;
-  error: string;
-  code: string;
-}
-
-// Helper function to get the token from localStorage
-const getToken = () => {
-  return localStorage.getItem('token');
+// Dummy data
+const dummyLogs: Record<string, WorkoutLog[]> = {
+  "2024-03-20": [
+    {
+      id: "1",
+      title: "Upper Body Power",
+      time: "14:30",
+      volume: "2500",
+      date: "2024-03-20",
+      isPublic: true,
+      notes: "Felt strong today!",
+      exercises: [
+        {
+          name: "Bench Press",
+          sets: 4,
+          image: "https://example.com/bench-press.jpg",
+          weight: 80,
+          reps: 8,
+          muscle: "chest"
+        },
+        {
+          name: "Pull-ups",
+          sets: 3,
+          image: "https://example.com/pull-ups.jpg",
+          weight: 0,
+          reps: 10,
+          muscle: "back"
+        }
+      ],
+      totalSets: 7,
+      duration: 45,
+      muscleGroups: {
+        chest: 2560,
+        back: 0
+      }
+    }
+  ],
+  "2024-03-19": [
+    {
+      id: "2",
+      title: "Leg Day",
+      time: "10:00",
+      volume: "3000",
+      date: "2024-03-19",
+      isPublic: true,
+      exercises: [
+        {
+          name: "Squats",
+          sets: 5,
+          image: "https://example.com/squats.jpg",
+          weight: 120,
+          reps: 5,
+          muscle: "legs"
+        }
+      ],
+      totalSets: 5,
+      duration: 60,
+      muscleGroups: {
+        legs: 3000
+      }
+    }
+  ]
 };
 
-// Helper function to handle API errors
-const handleApiError = async (response: Response) => {
-  const data = await response.json() as ErrorResponse;
-  throw new Error(data.error || 'An error occurred');
-};
+class WorkoutLogService {
+  async getWorkoutLogs(): Promise<{ data: Record<string, WorkoutLog[]> }> {
+    await delay(500); // Simulate API delay
+    return { data: dummyLogs };
+  }
 
-export const workoutLogService = {
+  async addWorkoutLog(log: WorkoutLog): Promise<{ data: WorkoutLog }> {
+    await delay(500);
+    if (!dummyLogs[log.date]) {
+      dummyLogs[log.date] = [];
+    }
+    dummyLogs[log.date].push(log);
+    return { data: log };
+  }
+
+  async getWorkoutStats(): Promise<{
+    totalWorkouts: number;
+    totalVolume: number;
+    totalSets: number;
+    totalDuration: number;
+    muscleGroupDistribution: Record<string, number>;
+  }> {
+    await delay(500);
+    
+    const stats = {
+      totalWorkouts: 0,
+      totalVolume: 0,
+      totalSets: 0,
+      totalDuration: 0,
+      muscleGroupDistribution: {} as Record<string, number>
+    };
+
+    Object.values(dummyLogs).forEach(logs => {
+      logs.forEach(log => {
+        stats.totalWorkouts++;
+        stats.totalVolume += parseInt(log.volume);
+        stats.totalSets += log.totalSets;
+        stats.totalDuration += log.duration;
+
+        Object.entries(log.muscleGroups).forEach(([muscle, volume]) => {
+          stats.muscleGroupDistribution[muscle] = (stats.muscleGroupDistribution[muscle] || 0) + (volume as number);
+        });
+      });
+    });
+
+    return stats;
+  }
+
   async createWorkoutLog(logData: Omit<WorkoutLog, 'id' | 'userId' | 'createdAt' | 'updatedAt'>): Promise<WorkoutLog> {
     try {
       const token = getToken();
@@ -87,7 +166,7 @@ export const workoutLogService = {
       console.error('Create workout log error:', error);
       throw error;
     }
-  },
+  }
 
   async getAllWorkoutLogs(page = 1, limit = 10): Promise<PaginatedResponse<WorkoutLog>> {
     try {
@@ -117,7 +196,7 @@ export const workoutLogService = {
       console.error('Get workout logs error:', error);
       throw error;
     }
-  },
+  }
 
   async getWorkoutLogById(id: string): Promise<WorkoutLog> {
     try {
@@ -143,7 +222,7 @@ export const workoutLogService = {
       console.error('Get workout log error:', error);
       throw error;
     }
-  },
+  }
 
   async updateWorkoutLog(id: string, logData: Partial<WorkoutLog>): Promise<WorkoutLog> {
     try {
@@ -172,7 +251,7 @@ export const workoutLogService = {
       console.error('Update workout log error:', error);
       throw error;
     }
-  },
+  }
 
   async deleteWorkoutLog(id: string): Promise<void> {
     try {
@@ -196,7 +275,7 @@ export const workoutLogService = {
       console.error('Delete workout log error:', error);
       throw error;
     }
-  },
+  }
 
   async getUserWorkoutLogs(userId: string): Promise<WorkoutLog[]> {
     try {
@@ -222,31 +301,7 @@ export const workoutLogService = {
       console.error('Get user workout logs error:', error);
       throw error;
     }
-  },
+  }
+}
 
-  async getWorkoutStats(): Promise<WorkoutStats> {
-    try {
-      const token = getToken();
-      if (!token) {
-        throw new Error('No token found');
-      }
-
-      const response = await fetch(API_ENDPOINTS.workoutLogs.getStats, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-        credentials: 'include',
-      });
-
-      if (!response.ok) {
-        await handleApiError(response);
-      }
-
-      const data = await response.json();
-      return data.stats;
-    } catch (error) {
-      console.error('Get workout stats error:', error);
-      throw error;
-    }
-  },
-}; 
+export const workoutLogService = new WorkoutLogService(); 

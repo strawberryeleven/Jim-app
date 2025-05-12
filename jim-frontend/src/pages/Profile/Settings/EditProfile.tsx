@@ -1,22 +1,31 @@
 import { useState, useEffect, useRef } from "react";
 import { ArrowLeft } from "lucide-react";
-import { useLocation, Link } from "react-router-dom";
+import { useLocation, Link, useNavigate } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
+import { RootState, AppDispatch } from "@/store/store";
+import { updateProfileAsync } from "@/store/slices/profileSlice";
 
 const EditProfile = () => {
+  const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
+  const profile = useSelector((state: RootState) => state.profile.data);
+  const updateStatus = useSelector((state: RootState) => state.profile.updateStatus);
+  const error = useSelector((state: RootState) => state.profile.error);
+
   const initialData = {
-    name: "",
-    bio: "",
+    name: profile?.username || "",
+    bio: profile?.bio || "",
     link: "",
     sex: "",
     birthday: "",
     image: null,
   };
 
-  const [name, setName] = useState<string>("");
-  const [bio, setBio] = useState<string>("");
-  const [link, setLink] = useState<string>("");
-  const [sex, setSex] = useState<string>("");
-  const [birthday, setBirthday] = useState<string>("");
+  const [name, setName] = useState<string>(initialData.name);
+  const [bio, setBio] = useState<string>(initialData.bio);
+  const [link, setLink] = useState<string>(initialData.link);
+  const [sex, setSex] = useState<string>(initialData.sex);
+  const [birthday, setBirthday] = useState<string>(initialData.birthday);
   const [image, setImage] = useState<File | null>(null);
   const [showImageOptions, setShowImageOptions] = useState(false);
 
@@ -40,21 +49,37 @@ const EditProfile = () => {
     );
   }, [name, bio, link, sex, birthday, image]);
 
-  const handleSave = () => {
-    console.log("Saved:", { name, bio, link, sex, birthday });
-    setShowSuccess(true);
-    setIsDirty(false);
-    setTimeout(() => setShowSuccess(false), 2500);
+  useEffect(() => {
+    if (updateStatus === 'succeeded') {
+      setShowSuccess(true);
+      setIsDirty(false);
+      setTimeout(() => {
+        setShowSuccess(false);
+        navigate(`/${from}`);
+      }, 1500);
+    }
+  }, [updateStatus, from, navigate]);
+
+  const handleSave = async () => {
+    const formData = new FormData();
+    if (image) {
+      formData.append('profilePicture', image);
+    }
+
+    const profileData = {
+      username: name,
+      bio,
+      // Add other fields as needed
+    };
+
+    await dispatch(updateProfileAsync(profileData));
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setImage(e.target.files[0]);
-      console.log("Selected image:", e.target.files[0]);
     }
   };
-
-  //current pfp delete then enable save btn to save no pfp
 
   return (
     <div className="p-4">
@@ -65,11 +90,11 @@ const EditProfile = () => {
         <h1 className="text-xl font-bold text-white">Edit Profile</h1>
 
         <button
-          className={isDirty ? "text-blue-500" : "text-gray-400"}
-          disabled={!isDirty}
+          className={`${isDirty ? "text-blue-500" : "text-gray-400"} ${updateStatus === 'loading' ? 'opacity-50 cursor-not-allowed' : ''}`}
+          disabled={!isDirty || updateStatus === 'loading'}
           onClick={handleSave}
         >
-          Save
+          {updateStatus === 'loading' ? 'Saving...' : 'Save'}
         </button>
       </div>
 
@@ -79,11 +104,23 @@ const EditProfile = () => {
         </div>
       )}
 
+      {error && (
+        <div className="mb-4 text-red-600 font-medium">
+          {error}
+        </div>
+      )}
+
       <div className="flex flex-col items-center mb-4">
         <div className="w-20 h-20 rounded-full overflow-hidden flex items-center justify-center text-white text-2xl mb-2 bg-pink-500">
           {image ? (
             <img
               src={URL.createObjectURL(image)}
+              alt="Profile"
+              className="w-full h-full object-cover"
+            />
+          ) : profile?.profilePicture ? (
+            <img
+              src={profile.profilePicture}
               alt="Profile"
               className="w-full h-full object-cover"
             />
@@ -127,7 +164,7 @@ const EditProfile = () => {
           ref={fileInputRef}
           className="hidden"
           onChange={handleImageChange}
-        />{" "}
+        />
       </div>
 
       <div className="space-y-4">

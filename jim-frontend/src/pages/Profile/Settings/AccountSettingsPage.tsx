@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ChevronRight, User, Mail, Lock, Trash2 } from "lucide-react";
 
 export default function AccountSettingsPage() {
   const navigate = useNavigate();
@@ -20,62 +20,57 @@ export default function AccountSettingsPage() {
   };
 
   //no alert for delete
-  //do modal instead
+  //do modal instead  
 
   return (
-    <div className="p-4">
-      <div className="flex items-center mb-4">
+    <div className="p-4 text-gray-400">
+      <div className="flex items-center space-x-3 mb-4">
         <Link to="/settings">
-          <ArrowLeft className="w-5 h-5 mr-3 text-white" />
+          <ArrowLeft className="w-5 h-5 text-white" />
         </Link>
-        <h1 className="text-lg font-semibold text-white ">
-          Account Settings
-        </h1>
+        <h2 className="text-xl font-bold text-white">Account Settings</h2>
       </div>
-      <div className="space-y-4">
-        <button
-          onClick={() => navigate("/change-username")}
-          className="w-full text-left p-3 rounded-md bg-gray-100 hover:bg-gray-200"
-        >
-          Change Username
-        </button>
 
-        <button
-          onClick={() => navigate("/change-email")}
-          className="w-full text-left p-3 rounded-md bg-gray-100 hover:bg-gray-200"
-        >
-          Change Email
-        </button>
-        <button
-          onClick={() => navigate("/update-password")}
-          className="w-full text-left p-3 rounded-md bg-gray-100 hover:bg-gray-200"
-        >
-          Update Password
-        </button>
+      <Section title="Account Management">
+        <Link to="/change-username">
+          <SettingItem icon={<User />} label="Change Username" />
+        </Link>
+        <Link to="/change-email">
+          <SettingItem icon={<Mail />} label="Change Email" />
+        </Link>
+        <Link to="/update-password">
+          <SettingItem icon={<Lock />} label="Update Password" />
+        </Link>
+      </Section>
 
+      <Section title="Danger Zone">
         <button
-          onClick={() => setShowModal(true)} // open the modal
-          className="w-full text-left p-3 rounded-md bg-red-100 hover:bg-red-200 text-red-600 font-semibold"
+          onClick={() => setShowModal(true)}
+          className="w-full"
         >
-          Delete Account
+          <SettingItem 
+            icon={<Trash2 className="text-red-500" />} 
+            label="Delete Account" 
+            className="text-red-500 hover:text-red-600"
+          />
         </button>
-      </div>
+      </Section>
 
       {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg p-6 max-w-sm w-full">
-            <h3 className="text-lg font-bold mb-4 text-red-600">
+          <div className="bg-gray-800 rounded-lg shadow-lg p-6 max-w-sm w-full text-white">
+            <h3 className="text-lg font-bold mb-4 text-red-500">
               Confirm Account Deletion
             </h3>
-            <p className="mb-4">
+            <p className="mb-4 text-gray-300">
               Are you sure you want to delete your account? This action cannot
               be undone.
             </p>
             <div className="flex justify-end gap-2">
               <button
                 onClick={() => setShowModal(false)}
-                className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+                className="px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-600"
               >
                 Cancel
               </button>
@@ -89,6 +84,53 @@ export default function AccountSettingsPage() {
           </div>
         </div>
       )}
+
+      {accountDeleted && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-gray-800 rounded-lg shadow-lg p-6 max-w-sm w-full text-white">
+            <p className="text-center text-gray-300">
+              Account deleted successfully. Redirecting to login...
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Section({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="mb-6">
+      <h3 className="text-gray-500 uppercase text-md font-semibold mb-2">
+        {title}
+      </h3>
+      <div className="space-y-2">{children}</div>
+    </div>
+  );
+}
+
+function SettingItem({
+  icon,
+  label,
+  className = "",
+}: {
+  icon: React.ReactNode;
+  label: string;
+  className?: string;
+}) {
+  return (
+    <div className={`flex items-center justify-between p-2 rounded-md hover:bg-gray-700 cursor-pointer ${className}`}>
+      <div className="flex items-center space-x-3">
+        <span className="text-gray-400">{icon}</span>
+        <span>{label}</span>
+      </div>
+      <ChevronRight className="text-gray-400" />
     </div>
   );
 }

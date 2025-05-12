@@ -2,16 +2,7 @@ import {
   ChevronRight,
   User,
   Lock,
-  Bell,
-  Dumbbell,
-  Shield,
   Ruler,
-  Languages,
-  Link2,
-  Moon,
-  FileDown,
-  Info,
-  HelpCircle,
   Mail,
 } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -29,37 +20,23 @@ export default function SettingsPage() {
 
       <Section title="Account">
         <Link to="/edit-profile" state={{ from: 'settings' }}>
-          <SettingItem icon={<User />} label="Profile" />
+          <SettingItem icon={<User />} label="Edit Profile" />
         </Link>
         <Link to="/settings/account">
-          <SettingItem icon={<Lock />} label="Account" />
+          <SettingItem icon={<Lock />} label="Account Settings" />
         </Link>
-        <SettingItem
-          icon={<span className="text-sm font-bold">PRO</span>}
-          label="Manage Subscription"
-        />
-        <SettingItem icon={<Bell />} label="Notifications" />
       </Section>
 
-      <Section title="Preferences">
-        <SettingItem icon={<Dumbbell />} label="Workouts" />
-        <SettingItem icon={<Shield />} label="Privacy & Social" />
-        <SettingItem icon={<Ruler />} label="Units" />
-        <SettingItem icon={<Languages />} label="Language" />
-        <SettingItem icon={<Link2 />} label="Integrations" />
-        <SettingItem icon={<Moon />} label="Theme" />
-        <SettingItem icon={<FileDown />} label="Export & Import Data" />
+      <Section title="Fitness">
+        <Link to="/settings/measurements">
+          <SettingItem icon={<Ruler />} label="Track Measurements" />
+        </Link>
       </Section>
 
-      <Section title="Guides">
-        <SettingItem icon={<Info />} label="Getting Started Guide" />
-        <SettingItem icon={<HelpCircle />} label="Routine Help" />
-      </Section>
-
-      <Section title="Help">
-        <SettingItem icon={<HelpCircle />} label="Frequently Asked Questions" />
-        <SettingItem icon={<Mail />} label="Contact Us" />
-        <SettingItem icon={<Info />} label="About" />
+      <Section title="Support">
+        <Link to="/contact">
+          <SettingItem icon={<Mail />} label="Contact Support" />
+        </Link>
       </Section>
     </div>
   );
