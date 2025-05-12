@@ -4,13 +4,11 @@ import { config } from 'dotenv';
 // Load environment variables
 config();
 
-if (!process.env.MONGODB_URI) {
-  throw new Error('MONGODB_URI is not defined in environment variables');
-}
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/jim-app';
 
 export const connectDB = async (): Promise<void> => {
   try {
-    const conn = await mongoose.connect(process.env.MONGODB_URI as string);
+    const conn = await mongoose.connect(MONGODB_URI);
     console.log(`MongoDB Connected: ${conn.connection.host}`);
   } catch (error) {
     console.error(`Error: ${(error as Error).message}`);

@@ -11,19 +11,35 @@ interface RegisterData {
   password: string;
 }
 
+interface User {
+  id: string;
+  email: string;
+  name: string;
+  createdAt?: string;
+  lastLogin?: string;
+}
+
 interface AuthResponse {
   success: boolean;
-  user: {
-    id: string;
-    email: string;
-    name: string;
-  };
+  user: User;
   token: string;
+}
+
+interface ErrorResponse {
+  success: false;
+  error: string;
+  code: string;
 }
 
 // Helper function to get the token from localStorage
 const getToken = () => {
   return localStorage.getItem('token');
+};
+
+// Helper function to handle API errors
+const handleApiError = async (response: Response) => {
+  const data = await response.json() as ErrorResponse;
+  throw new Error(data.error || 'An error occurred');
 };
 
 export const authService = {
@@ -39,11 +55,12 @@ export const authService = {
         credentials: 'include',
       });
 
-      const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.message || 'Login failed');
+        await handleApiError(response);
       }
 
+      const data = await response.json() as AuthResponse;
+      
       // Store the token in localStorage
       if (data.token) {
         localStorage.setItem('token', data.token);
@@ -71,11 +88,12 @@ export const authService = {
         credentials: 'include',
       });
 
-      const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.message || 'Registration failed');
+        await handleApiError(response);
       }
 
+      const data = await response.json() as AuthResponse;
+      
       // Store the token in localStorage
       if (data.token) {
         localStorage.setItem('token', data.token);
@@ -107,8 +125,7 @@ export const authService = {
       });
 
       if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.message || 'Logout failed');
+        await handleApiError(response);
       }
 
       // Clear the token from localStorage
@@ -133,14 +150,69 @@ export const authService = {
         credentials: 'include',
       });
 
-      const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.message || 'Token verification failed');
+        await handleApiError(response);
       }
 
+      const data = await response.json() as AuthResponse;
       return data;
     } catch (error) {
       console.error('Token verification error:', error);
+      throw error;
+    }
+  },
+
+  async getProfile(): Promise<User> {
+    try {
+      const token = getToken();
+      if (!token) {
+        throw new Error('No token found');
+      }
+
+      const response = await fetch(API_ENDPOINTS.users.profile, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        await handleApiError(response);
+      }
+
+      const data = await response.json();
+      return data.user;
+    } catch (error) {
+      console.error('Get profile error:', error);
+      throw error;
+    }
+  },
+
+  async updateProfile(profileData: Partial<User>): Promise<User> {
+    try {
+      const token = getToken();
+      if (!token) {
+        throw new Error('No token found');
+      }
+
+      const response = await fetch(API_ENDPOINTS.users.updateProfile, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(profileData),
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        await handleApiError(response);
+      }
+
+      const data = await response.json();
+      return data.user;
+    } catch (error) {
+      console.error('Update profile error:', error);
       throw error;
     }
   },

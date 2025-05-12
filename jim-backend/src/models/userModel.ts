@@ -1,52 +1,29 @@
-import mongoose, { Schema, Document, Types } from 'mongoose';
+import { Schema, model, Document } from 'mongoose';
+import { ObjectId } from 'mongodb';
 
 export interface IUser extends Document {
-  _id: Types.ObjectId;
+  _id: ObjectId; // Explicitly define _id
+  name: string;
   email: string;
   password: string;
-  name: string;
-  createdAt: Date;
-  updatedAt: Date;
-  lastLogin: Date;
+  profileImage?: string;
+  bio?: string;
+  followers: ObjectId[];
+  following: ObjectId[];
   isActive: boolean;
+  lastLogin?: Date;
 }
 
-const userSchema: Schema = new Schema(
-  {
-    email: {
-      type: String,
-      required: true,
-      unique: true,
-      trim: true,
-      lowercase: true,
-    },
-    password: {
-      type: String,
-      required: true,
-    },
-    name: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-    createdAt: {
-      type: Date,
-      default: Date.now,
-    },
-    updatedAt: {
-      type: Date,
-      default: Date.now,
-    },
-    lastLogin: {
-      type: Date,
-      default: Date.now,
-    },
-    isActive: {
-      type: Boolean,
-      default: true,
-    },
-  },
-  { timestamps: true }
-);
+const userSchema = new Schema<IUser>({
+  name: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  profileImage: { type: String, default: '' },
+  bio: { type: String, default: '' },
+  followers: [{ type: Schema.Types.ObjectId, ref: 'User', default: [] }],
+  following: [{ type: Schema.Types.ObjectId, ref: 'User', default: [] }],
+  isActive: { type: Boolean, default: false },
+  lastLogin: { type: Date },
+});
 
-export default mongoose.model<IUser>('User', userSchema);
+export default model<IUser>('User', userSchema);

@@ -4,6 +4,11 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { connectDB } from './config/db';
 import authRoutes from './routes/authRoutes';
+import userRoutes from './routes/userRoutes';
+import exerciseRoutes from './routes/exerciseRoutes';
+import workoutRoutes from './routes/workoutRoutes';
+import routineRoutes from './routes/routineRoutes';
+import workoutLogRoutes from './routes/workoutLogRoutes';
 import { errorHandler } from './middleware/errorMiddleware';
 
 // Load environment variables
@@ -35,6 +40,11 @@ app.use(
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/exercises', exerciseRoutes);
+app.use('/api/workouts', workoutRoutes);
+app.use('/api/routines', routineRoutes);
+app.use('/api/workout-logs', workoutLogRoutes);
 
 // Error Handler
 app.use(errorHandler);
