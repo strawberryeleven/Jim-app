@@ -5,7 +5,7 @@ import { Input } from "@/components/forms/input";
 import { Textarea } from "@/components/forms/textarea";
 import { Plus } from "lucide-react";
 import { useAppSelector, useAppDispatch } from "@/hooks/redux-hooks";
-import { updateRoutine } from "@/store/routineSlice";
+import { updateRoutine } from "@/store/slices/routineSlice";
 import {
   updateRoutineTitle,
   updateRoutineComment,

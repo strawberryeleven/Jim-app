@@ -1,5 +1,5 @@
 import { configureStore } from '@reduxjs/toolkit';
-import routineReducer from './routineSlice';
+import routineReducer from './slices/routineSlice';
 import exerciseReducer from './RoutineExerciseStore';
 
 export const store = configureStore({

@@ -3,7 +3,7 @@ import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { Button } from "@/components/buttons/button";
 import { ArrowLeft, MoreVertical, Pencil, Trash2, Play } from "lucide-react";
 import { useAppSelector, useAppDispatch } from "@/hooks/redux-hooks";
-import { deleteRoutine } from "@/store/routineSlice";
+import { deleteRoutine } from "@/store/slices/routineSlice";
 import {
   DropdownMenu,
   DropdownMenuContent,
