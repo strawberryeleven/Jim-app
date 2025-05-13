@@ -1,241 +1,200 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { v4 as uuidv4 } from 'uuid';
 import { Button } from "@/components/buttons/button";
 import { Input } from "@/components/forms/input";
 import { Textarea } from "@/components/forms/textarea";
-import { Plus, AlertCircle } from "lucide-react";
-import { useAppSelector, useAppDispatch } from "@/hooks/redux-hooks";
-import { addRoutine } from "@/store/slices/RoutineSlice";
-import {
-  updateRoutineTitle,
-  updateRoutineComment,
-  addExercise,
-  removeExercise,
-  addSetToExercise,
-  updateSetValue,
-  removeSetFromExercise,
-  clearRoutine
-} from "@/store/RoutineExerciseStore";
-import { useToast } from "@/hooks/use-toast";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/dialogs/dialog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/dialogs/alert-dialog";
-import ExerciseCard2 from "@/components/workout/ExerciseCard2";
+import { useToast } from "@/components/tooltips/use-toast";
+import { routineService, CreateRoutineData } from "@/services/routineService";
+import { useAppSelector } from "@/hooks/redux-hooks";
 
 const CreateRoutine = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const dispatch = useAppDispatch();
+  const selectedExercises = useAppSelector((state) => state.exercises.selectedExercises);
 
-  const routineTitle = useAppSelector(state => state.exercises.routineTitle);
-  const routineComment = useAppSelector(state => state.exercises.routineComment);
-  const selectedExercises = useAppSelector(state => state.exercises.selectedExercises);
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [isPublic, setIsPublic] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [showCancelDialog, setShowCancelDialog] = useState(false);
-  const [showMissingTitleDialog, setShowMissingTitleDialog] = useState(false);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-  const addSelectedExercises = () => {
-    navigate("/add-exercise2");
-  };
+    if (isSubmitting) {
+      return; // Prevent double submission
+    }
 
-  const handleSave = () => {
-    const trimmedTitle = routineTitle.trim();
-    if (!trimmedTitle || selectedExercises.length === 0) {
-      setShowMissingTitleDialog(true);
+    if (!name.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter a routine name",
+        variant: "destructive",
+      });
       return;
     }
 
-    const newRoutine = {
-      id: uuidv4(),
-      title: trimmedTitle,
-      comment: routineComment,
-      exercises: selectedExercises,
-      createdAt: Date.now(),
-    };
+    if (selectedExercises.length === 0) {
+      toast({
+        title: "Error",
+        description: "Please add at least one exercise to the routine",
+        variant: "destructive",
+      });
+      return;
+    }
 
-    dispatch(addRoutine(newRoutine));
+    try {
+      setIsSubmitting(true);
 
-    toast({
-      title: "Routine Saved",
-      description: `${trimmedTitle} has been saved successfully.`,
-    });
+      const routineData: CreateRoutineData = {
+        name: name.trim(),
+        description: description.trim(),
+        exercises: selectedExercises.map((exercise, index) => ({
+          exerciseId: exercise.id || exercise.name,
+          sets: exercise.sets.map(set => ({
+            weight: Number(set.weight) || 0,
+            reps: Number(set.reps) || 0,
+            isCompleted: false
+          })),
+          order: index
+        })),
+        isPublic
+      };
 
-    dispatch(clearRoutine());
-    navigate("/workout");
-  };
+      console.log('Sending routine data:', JSON.stringify(routineData, null, 2));
 
-  const handleCancel = () => {
-    if (selectedExercises.length > 0 || routineTitle.trim()) {
-      setShowCancelDialog(true);
-    } else {
-      navigate(-1);
+      const routine = await routineService.createRoutine(routineData);
+
+      toast({
+        title: "Success",
+        description: "Routine created successfully",
+      });
+
+      navigate("/routines");
+    } catch (error) {
+      console.error("Error creating routine:", error);
+      if (error instanceof Error) {
+        console.error("Error details:", error.message);
+      }
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to create routine",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const confirmDiscard = () => {
-    dispatch(clearRoutine());
-    setShowCancelDialog(false);
-    navigate(-1);
-  };
-
   return (
-    <div className="min-h-screen flex flex-col text-white">
-      {/* Header */}
-      <div className="flex justify-between items-center p-4 border-b border-gray-800">
-        <Button
-          variant="link"
-          className="text-blue-500 p-0 h-auto text-lg"
-          onClick={handleCancel}
-        >
-          Cancel
-        </Button>
-        <h1 className="text-xl font-medium">Create Routine</h1>
-        <Button
-          className="bg-blue-500 hover:bg-blue-600 text-white font-semibold"
-          onClick={handleSave}
-        >
-          Save
-        </Button>
-      </div>
-
-      {/* Scrollable content */}
-      <div className="flex-1 overflow-y-auto">
-        {/* Title input */}
-        <div className="p-4">
-          <Input
-            placeholder="Routine title"
-            value={routineTitle}
-            onChange={(e) => dispatch(updateRoutineTitle(e.target.value))}
-            className="bg-transparent border-b border-gray-700 rounded-none px-0 text-xl font-medium focus-visible:ring-0 focus-visible:border-gray-500"
-          />
-        </div>
-
-        {/* Routine comment input */}
-        <div className="p-4">
-          <Textarea
-            placeholder="Add comments about your routine (optional)"
-            value={routineComment}
-            onChange={(e) => dispatch(updateRoutineComment(e.target.value))}
-            className="bg-transparent border-b border-gray-700 rounded-none px-0 text-lg focus-visible:ring-0 focus-visible:border-gray-500"
-          />
-        </div>
-
-        {/* Exercises list */}
-        <div className="px-4 mt-4 space-y-8">
-          {selectedExercises.length > 0 ? (
-            selectedExercises.map((exercise, index) => (
-              <ExerciseCard2
-                key={exercise.name}
-                exercise={exercise}
-                index={index}
-                addSetToExercise={(arg) => dispatch(addSetToExercise(arg))}
-                updateSetValue={(arg) => dispatch(updateSetValue(arg))}
-                removeSetFromExercise={(_, setIndex) =>
-                  dispatch(removeSetFromExercise({ name: exercise.name, setIndex }))
-                }
-                removeExercise={(name) => dispatch(removeExercise(name))}
-              />
-            ))
-          ) : (
-            <div className="flex flex-col items-center justify-center mt-12 px-6 text-center">
-              <div className="text-gray-500 text-5xl mb-6">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="64"
-                  height="64"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M6.5 6.5h11" />
-                  <path d="M20 15V9c0-.6-.4-1-1-1h-2a1 1 0 0 0-1 1v6c0 .6.4 1 1 1h2c.6 0 1-.4 1-1Z" />
-                  <path d="M4 15V9c0-.6.4-1 1-1h2c.6 0 1 .4 1 1v6c0 .6-.4 1-1 1H5c-.6 0-1-.4-1-1Z" />
-                  <path d="M8 9h8" />
-                  <path d="M8 15h8" />
-                </svg>
-              </div>
-              <p className="text-gray-500 text-lg">
-                Get started by adding an exercise to your routine.
-              </p>
-            </div>
-          )}
-        </div>
-
-        {/* Add Exercise Button */}
-        <div className="px-4 py-6">
+    <div className="min-h-screen bg-black text-white p-4">
+      <div className="max-w-2xl mx-auto">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold">Create New Routine</h1>
           <Button
-            className="w-full bg-blue-500 hover:bg-blue-600 text-white py-6 text-lg font-medium rounded-xl"
-            onClick={addSelectedExercises}
+            variant="ghost"
+            className="text-white hover:text-blue-400"
+            onClick={() => navigate(-1)}
           >
-            <Plus className="mr-2" size={24} /> Add exercise
+            Cancel
           </Button>
         </div>
-      </div>
 
-      {/* Cancel Confirmation */}
-      <AlertDialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
-        <AlertDialogContent className="bg-zinc-900 border-gray-800 text-white">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-xl">Discard Routine?</AlertDialogTitle>
-            <AlertDialogDescription className="text-gray-400">
-              Are you sure you want to discard this routine? All changes will be lost.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="mt-4">
-            <AlertDialogCancel className="bg-transparent text-white border-gray-700 hover:bg-zinc-800">
-              Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={confirmDiscard}
-              className="bg-red-500 hover:bg-red-600 text-white border-none"
-            >
-              Discard
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-2">
+            <label htmlFor="name" className="block text-sm font-medium">
+              Routine Name
+            </label>
+            <Input
+              id="name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Enter routine name"
+              className="bg-zinc-900 border-zinc-800 text-white"
+              required
+            />
+          </div>
 
-      {/* Missing Title or Exercises Dialog */}
-      <Dialog open={showMissingTitleDialog} onOpenChange={setShowMissingTitleDialog}>
-        <DialogContent className="bg-zinc-900 border-gray-800 text-white">
-          <DialogHeader>
-            <DialogTitle className="flex items-center text-xl">
-              <AlertCircle className="h-6 w-6 text-yellow-500 mr-2" />
-              Incomplete Routine
-            </DialogTitle>
-            <DialogDescription className="text-gray-300 pt-2">
-              Please enter a routine title and add at least one exercise before saving.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
+          <div className="space-y-2">
+            <label htmlFor="description" className="block text-sm font-medium">
+              Description
+            </label>
+            <Textarea
+              id="description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Enter routine description"
+              className="bg-zinc-900 border-zinc-800 text-white"
+              rows={4}
+            />
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              id="isPublic"
+              checked={isPublic}
+              onChange={(e) => setIsPublic(e.target.checked)}
+              className="rounded border-zinc-800 bg-zinc-900"
+            />
+            <label htmlFor="isPublic" className="text-sm font-medium">
+              Make this routine public
+            </label>
+          </div>
+
+          <div className="space-y-4">
+            <h2 className="text-lg font-semibold">Selected Exercises</h2>
+            {selectedExercises.length === 0 ? (
+              <p className="text-gray-400">No exercises selected</p>
+            ) : (
+              <div className="space-y-4">
+                {selectedExercises.map((exercise, index) => (
+                  <div
+                    key={exercise.id}
+                    className="p-4 bg-zinc-900 rounded-lg space-y-2"
+                  >
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-medium">{exercise.name}</h3>
+                      <span className="text-sm text-gray-400">
+                        {exercise.muscleGroup} • {exercise.equipment}
+                      </span>
+                    </div>
+                    <div className="space-y-2">
+                      {exercise.sets.map((set, setIndex) => (
+                        <div
+                          key={setIndex}
+                          className="flex items-center space-x-4 text-sm"
+                        >
+                          <span className="text-gray-400">Set {setIndex + 1}:</span>
+                          <span>Weight: {set.weight || 0} kg</span>
+                          <span>Reps: {set.reps || 0}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="flex justify-end space-x-4">
             <Button
-              onClick={() => setShowMissingTitleDialog(false)}
-              className="w-full bg-blue-500 hover:bg-blue-600"
+              type="button"
+              variant="ghost"
+              onClick={() => navigate("/add-routine-exercise")}
+              className="text-white hover:text-blue-400"
             >
-              OK
+              Add Exercises
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              {isSubmitting ? "Creating..." : "Create Routine"}
+            </Button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 };

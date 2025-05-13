@@ -73,27 +73,39 @@ const exerciseUpdateSchema = z.object({
 const routineSchema = z.object({
   name: z.string().min(1),
   description: z.string().min(1),
-  workouts: z.array(
+  exercises: z.array(
     z.object({
-      workout: z.string().min(1),
-      day: z.number().int().min(1).max(7),
-      order: z.number().int().min(1),
+      exerciseId: z.string().min(1),
+      sets: z.array(
+        z.object({
+          weight: z.number().min(0),
+          reps: z.number().min(1),
+          isCompleted: z.boolean().optional()
+        })
+      ).min(1),
+      order: z.number().int().min(1)
     })
   ).min(1),
-  isPublic: z.boolean(),
+  isPublic: z.boolean().optional()
 });
 
 const routineUpdateSchema = z.object({
   name: z.string().min(1).optional(),
   description: z.string().min(1).optional(),
-  workouts: z.array(
+  exercises: z.array(
     z.object({
-      workout: z.string().min(1),
-      day: z.number().int().min(1).max(7),
-      order: z.number().int().min(1),
+      exerciseId: z.string().min(1),
+      sets: z.array(
+        z.object({
+          weight: z.number().min(0),
+          reps: z.number().min(1),
+          isCompleted: z.boolean().optional()
+        })
+      ).min(1),
+      order: z.number().int().min(1)
     })
   ).min(1).optional(),
-  isPublic: z.boolean().optional(),
+  isPublic: z.boolean().optional()
 });
 
 const updateProfileSchema = z.object({

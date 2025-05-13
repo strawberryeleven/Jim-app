@@ -12,9 +12,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/forms/select";
-import { exercises, equipmentList, muscleList } from "@/data/ExerciseData";
 import { useExerciseStore } from "@/store/WorkpoutExerciseStore";
 import { useNavigate } from "react-router-dom";
+import { exerciseService, Exercise } from "@/services/exerciseService";
 
 const AddExercise = () => {
   const navigate = useNavigate();
@@ -24,11 +24,39 @@ const AddExercise = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedEquipment, setSelectedEquipment] = useState<string>("all-equipment");
   const [selectedMuscle, setSelectedMuscle] = useState<string>("all-muscles");
-  const [tempExercises, setTempExercises] = useState<typeof exercises>([]);
+  const [tempExercises, setTempExercises] = useState<any[]>([]);
+  const [exercises, setExercises] = useState<Exercise[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [equipmentList, setEquipmentList] = useState<string[]>([]);
+  const [muscleList, setMuscleList] = useState<string[]>([]);
 
   useEffect(() => {
     setTempExercises(selectedExercises); // Load current exercises as temp
   }, [selectedExercises]);
+
+  useEffect(() => {
+    const fetchExercises = async () => {
+      try {
+        const data = await exerciseService.getAllExercises();
+        setExercises(data);
+        const { equipmentList, muscleList } = exerciseService.getUniqueEquipmentAndMuscles(data);
+        setEquipmentList(equipmentList);
+        setMuscleList(muscleList);
+        setLoading(false);
+      } catch (err) {
+        setError('Failed to fetch exercises');
+        setLoading(false);
+        toast({
+          title: "Error",
+          description: "Failed to load exercises. Please try again.",
+          variant: "destructive",
+        });
+      }
+    };
+
+    fetchExercises();
+  }, [toast]);
 
   const handleEquipmentChange = (value: string) => {
     setSelectedEquipment(value);
@@ -44,18 +72,20 @@ const AddExercise = () => {
     setSelectedMuscle("all-muscles");
   };
 
-  const handleAddExercise = (exercise: typeof exercises[0]) => {
-    if (!tempExercises.some((ex) => ex.name === exercise.name)) {
-      setTempExercises((prev) => [...prev, exercise]);
+  const handleAddExercise = (exercise: Exercise) => {
+    const transformedExercise = exerciseService.transformExercise(exercise);
+    if (!tempExercises.some((ex) => ex.name === transformedExercise.name)) {
+      setTempExercises((prev) => [...prev, transformedExercise]);
       toast({
         title: "Exercise added",
-        description: `${exercise.name} has been added.`,
+        description: `${transformedExercise.name} has been added.`,
       });
     }
   };
 
-  const handleRemoveExercise = (exercise: typeof exercises[0]) => {
-    setTempExercises((prev) => prev.filter((ex) => ex.name !== exercise.name));
+  const handleRemoveExercise = (exercise: Exercise) => {
+    const transformedExercise = exerciseService.transformExercise(exercise);
+    setTempExercises((prev) => prev.filter((ex) => ex.name !== transformedExercise.name));
   };
 
   const isExerciseSelected = (exerciseName: string) => {
@@ -76,11 +106,37 @@ const AddExercise = () => {
 
   const filteredExercises = exercises.filter((exercise) => {
     const matchesSearch = exercise.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesEquipment = selectedEquipment === "all-equipment" || exercise.equipment === selectedEquipment;
-    const matchesMuscle = selectedMuscle === "all-muscles" || exercise.muscle === selectedMuscle;
+    const matchesEquipment = selectedEquipment === "all-equipment" || 
+      exercise.equipment.toLowerCase() === selectedEquipment;
+    const matchesMuscle = selectedMuscle === "all-muscles" || 
+      exercise.muscleGroup.toLowerCase() === selectedMuscle;
 
     return matchesSearch && matchesEquipment && matchesMuscle;
   });
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto"></div>
+          <p className="mt-4">Loading exercises...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-500">{error}</p>
+          <Button onClick={() => window.location.reload()} className="mt-4">
+            Try Again
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -113,7 +169,7 @@ const AddExercise = () => {
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-2">
+        <div className="space-y-2">
           <Select value={selectedEquipment} onValueChange={handleEquipmentChange}>
             <SelectTrigger className="w-full bg-gray-200 text-black border-zinc-800">
               <SelectValue placeholder="All Equipment" />
@@ -155,12 +211,12 @@ const AddExercise = () => {
             <div className="space-y-4">
               {filteredExercises.map((exercise) => (
                 <div
-                  key={exercise.name}
+                  key={exercise.id}
                   className="flex items-center space-x-4 p-2 hover:bg-zinc-900 rounded-lg transition-colors"
                 >
                   <div className="w-20 h-20 bg-zinc-800 rounded-lg overflow-hidden">
                     <img
-                      src={exercise.image || "/images/default.png"}
+                      src={exercise.imageUrl || "/images/default.png"}
                       alt={exercise.name}
                       className="w-full h-full object-cover"
                     />
@@ -169,7 +225,7 @@ const AddExercise = () => {
                   <div className="flex-1">
                     <h3 className="font-medium">{exercise.name}</h3>
                     <p className="text-sm text-gray-400">
-                      {exercise.muscle} • {exercise.equipment}
+                      {exercise.muscleGroup} • {exercise.equipment}
                     </p>
                   </div>
 

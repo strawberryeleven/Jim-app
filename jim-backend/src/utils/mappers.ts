@@ -20,19 +20,31 @@ export const mapExerciseToResponse = (exercise: IExercise & { _id: any; __v?: nu
   createdBy: exercise.createdBy ? exercise.createdBy.toString() : '',
 });
 
-export const mapRoutineToResponse = (routine: IRoutine & { _id: any; __v?: number }): RoutineResponse['routine'] => ({
-  id: routine._id.toString(),
-  name: routine.name,
-  description: routine.description,
-  workouts: routine.workouts.map(w => ({
-    workout: w.workout.toString(),
-    day: w.day,
-    order: w.order,
-  })),
-  createdBy: routine.createdBy ? routine.createdBy.toString() : '',
-  isPublic: routine.isPublic,
-  likes: routine.likes.map(l => l.toString()),
-});
+export const mapRoutineToResponse = (routine: IRoutine & { _id: any; __v?: number }): RoutineResponse['routine'] => {
+  if (!routine) {
+    throw new Error('Invalid routine data');
+  }
+
+  return {
+    id: routine._id?.toString() || '',
+    name: routine.name || '',
+    description: routine.description || '',
+    exercises: (routine.exercises || []).map(e => ({
+      exerciseId: e.exerciseId?.toString() || '',
+      sets: (e.sets || []).map(s => ({
+        weight: s.weight || 0,
+        reps: s.reps || 0,
+        isCompleted: s.isCompleted || false
+      })),
+      order: e.order || 0
+    })),
+    createdBy: routine.createdBy?.toString() || '',
+    isPublic: routine.isPublic || false,
+    likes: (routine.likes || []).map(l => l?.toString() || ''),
+    createdAt: routine.createdAt?.toISOString() || new Date().toISOString(),
+    updatedAt: routine.updatedAt?.toISOString() || new Date().toISOString()
+  };
+};
 
 export const mapUserToResponse = (user: any): {
     id: string;

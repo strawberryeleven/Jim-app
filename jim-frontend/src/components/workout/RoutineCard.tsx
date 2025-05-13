@@ -21,20 +21,19 @@ import {
 } from "@/components/dialogs/alert-dialog";
 import { useAppDispatch } from "@/hooks/redux-hooks";
 import { deleteRoutine } from "@/store/slices/RoutineSlice";
-import type { Routine } from "@/store/slices/RoutineSlice";
+import type { Routine } from "@/services/routineService";
 
 interface RoutineCardProps {
   routine: Routine;
 }
 
-const RoutineCard: React.FC<RoutineCardProps> = ({ routine }) => {
+const RoutineCard = ({ routine }: RoutineCardProps) => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
-  const handleViewRoutine = () => {
-    // Navigate to the View Routine page and pass routine data
-    navigate(`/view-routine/${routine.id}`, { state: { routine } });
+  const handleClick = () => {
+    navigate(`/routine/${routine.id}`);
   };
 
   const handleEdit = () => {
@@ -50,50 +49,33 @@ const RoutineCard: React.FC<RoutineCardProps> = ({ routine }) => {
     setShowDeleteDialog(false);
   };
 
-  // Extract the first exercise name for display
+  // Get the first exercise name for display
   const primaryExercise = routine.exercises.length > 0 
-    ? routine.exercises[0].name 
+    ? routine.exercises[0].exerciseDetails?.name || "Loading..."
     : "No exercises";
 
   return (
     <>
-      <Card className="bg-zinc-900 border-gray-800 text-white mb-4 overflow-hidden">
-        <div className="p-4">
-          <div className="flex justify-between items-start mb-1">
-            <h3 className="text-lg font-medium">{routine.title}</h3>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className="h-8 w-8 p-0 text-gray-400 hover:text-white hover:bg-transparent"
-                >
-                  <MoreVertical size={18} />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="bg-zinc-800 border-gray-700 text-white">
-                <DropdownMenuItem 
-                  onClick={handleEdit}
-                  className="hover:bg-zinc-700 cursor-pointer"
-                >
-                  <Pencil size={16} className="mr-2" /> Edit
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={handleDelete} 
-                  className="text-red-400 hover:bg-zinc-700 hover:text-red-300 cursor-pointer"
-                >
-                  <Trash2 size={16} className="mr-2" /> Delete
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-          <p className="text-sm text-gray-400">{primaryExercise}</p>
+      <Card
+        className="p-4 bg-black/40 hover:bg-black/50 transition-colors cursor-pointer"
+        onClick={handleClick}
+      >
+        <h3 className="text-lg font-semibold text-white">{routine.name}</h3>
+        <p className="text-sm text-gray-400 mt-1">{routine.description}</p>
+        <div className="flex items-center gap-2 mt-2">
+          <span className="text-sm text-gray-400">
+            {routine.exercises.length} exercises
+          </span>
+          <span className="text-sm text-gray-400">•</span>
+          <span className="text-sm text-gray-400">
+            {routine.likes.length} likes
+          </span>
         </div>
-        <Button
-          onClick={handleViewRoutine}
-          className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-t-none"
-        >
-          View Routine
-        </Button>
+        {routine.exercises.length > 0 && (
+          <div className="mt-2">
+            <p className="text-sm text-gray-400">Primary exercise: {primaryExercise}</p>
+          </div>
+        )}
       </Card>
 
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
@@ -101,7 +83,7 @@ const RoutineCard: React.FC<RoutineCardProps> = ({ routine }) => {
           <AlertDialogHeader>
             <AlertDialogTitle className="text-xl">Delete Routine</AlertDialogTitle>
             <AlertDialogDescription className="text-gray-400">
-              Are you sure you want to delete "{routine.title}"? This action cannot be undone.
+              Are you sure you want to delete "{routine.name}"? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="mt-4">

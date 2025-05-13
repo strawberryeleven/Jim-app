@@ -1,15 +1,16 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 export interface Exercise {
-    muscle: any;
-    equipment: any;
+  id: string;
   name: string;
+  muscleGroup: string;
+  equipment: string;
+  image?: string;
   sets: {
-    weight: number;
-    reps: number;
+    weight: string | number;
+    reps: string | number;
     isCompleted?: boolean;
   }[];
-   image?: string;
 }
 
 export interface Routine {

@@ -1,31 +1,24 @@
-import { API_ENDPOINTS } from '../config/api';
+import axios from 'axios';
+
+const API_URL = 'http://localhost:5000/api';
 
 export interface Exercise {
   id: string;
   name: string;
   description: string;
+  category: string;
   muscleGroup: string;
   equipment: string;
-  difficulty: 'beginner' | 'intermediate' | 'advanced';
-  instructions?: string[];
-  videoUrl?: string;
-  imageUrl?: string;
+  difficulty: string;
+  instructions: string[];
+  videoUrl: string;
+  imageUrl: string;
+  createdBy: any;
 }
 
-interface PaginatedResponse<T> {
+export interface ExerciseResponse {
   success: boolean;
-  exercises: T[];
-  pagination: {
-    total: number;
-    page: number;
-    pages: number;
-  };
-}
-
-interface ErrorResponse {
-  success: false;
-  error: string;
-  code: string;
+  exercises: Exercise[];
 }
 
 // Helper function to get the token from localStorage
@@ -33,149 +26,63 @@ const getToken = () => {
   return localStorage.getItem('token');
 };
 
-// Helper function to handle API errors
-const handleApiError = async (response: Response) => {
-  const data = await response.json() as ErrorResponse;
-  throw new Error(data.error || 'An error occurred');
+// Helper function to get headers with authorization
+const getHeaders = () => {
+  const token = getToken();
+  return {
+    'Authorization': `Bearer ${token}`,
+    'Content-Type': 'application/json'
+  };
 };
 
 export const exerciseService = {
-  async getAllExercises(page = 1, limit = 10, search?: string): Promise<PaginatedResponse<Exercise>> {
+  getAllExercises: async (page = 1, limit = 10, search = ''): Promise<Exercise[]> => {
     try {
-      const token = getToken();
-      if (!token) {
-        throw new Error('No token found');
-      }
-
-      const queryParams = new URLSearchParams({
-        page: page.toString(),
-        limit: limit.toString(),
-        ...(search && { search }),
+      const response = await axios.get<ExerciseResponse>(`${API_URL}/exercises`, {
+        headers: getHeaders(),
+        params: {
+          page,
+          limit,
+          search
+        }
       });
-
-      const response = await fetch(`${API_ENDPOINTS.exercises.getAll}?${queryParams}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-        credentials: 'include',
-      });
-
-      if (!response.ok) {
-        await handleApiError(response);
-      }
-
-      return await response.json();
+      return response.data.exercises;
     } catch (error) {
-      console.error('Get exercises error:', error);
+      console.error('Error fetching exercises:', error);
       throw error;
     }
   },
 
-  async getExerciseById(id: string): Promise<Exercise> {
+  getExerciseById: async (id: string): Promise<Exercise> => {
     try {
-      const token = getToken();
-      if (!token) {
-        throw new Error('No token found');
-      }
-
-      const response = await fetch(API_ENDPOINTS.exercises.getById(id), {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-        credentials: 'include',
+      const response = await axios.get<ExerciseResponse>(`${API_URL}/exercises/${id}`, {
+        headers: getHeaders()
       });
-
-      if (!response.ok) {
-        await handleApiError(response);
-      }
-
-      const data = await response.json();
-      return data.exercise;
+      return response.data.exercises[0];
     } catch (error) {
-      console.error('Get exercise error:', error);
+      console.error(`Error fetching exercise ${id}:`, error);
       throw error;
     }
   },
 
-  async createExercise(exerciseData: Omit<Exercise, 'id'>): Promise<Exercise> {
-    try {
-      const token = getToken();
-      if (!token) {
-        throw new Error('No token found');
-      }
-
-      const response = await fetch(API_ENDPOINTS.exercises.create, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(exerciseData),
-        credentials: 'include',
-      });
-
-      if (!response.ok) {
-        await handleApiError(response);
-      }
-
-      const data = await response.json();
-      return data.exercise;
-    } catch (error) {
-      console.error('Create exercise error:', error);
-      throw error;
-    }
+  // Transform backend exercise format to frontend format
+  transformExercise: (exercise: Exercise) => {
+    return {
+      name: exercise.name,
+      equipment: exercise.equipment.toLowerCase(),
+      muscle: exercise.muscleGroup.toLowerCase(),
+      image: exercise.imageUrl,
+    };
   },
 
-  async updateExercise(id: string, exerciseData: Partial<Exercise>): Promise<Exercise> {
-    try {
-      const token = getToken();
-      if (!token) {
-        throw new Error('No token found');
-      }
-
-      const response = await fetch(API_ENDPOINTS.exercises.update(id), {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(exerciseData),
-        credentials: 'include',
-      });
-
-      if (!response.ok) {
-        await handleApiError(response);
-      }
-
-      const data = await response.json();
-      return data.exercise;
-    } catch (error) {
-      console.error('Update exercise error:', error);
-      throw error;
-    }
-  },
-
-  async deleteExercise(id: string): Promise<void> {
-    try {
-      const token = getToken();
-      if (!token) {
-        throw new Error('No token found');
-      }
-
-      const response = await fetch(API_ENDPOINTS.exercises.delete(id), {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-        credentials: 'include',
-      });
-
-      if (!response.ok) {
-        await handleApiError(response);
-      }
-    } catch (error) {
-      console.error('Delete exercise error:', error);
-      throw error;
-    }
-  },
+  // Get unique equipment and muscle groups from exercises
+  getUniqueEquipmentAndMuscles: (exercises: Exercise[]) => {
+    const equipment = new Set(exercises.map(ex => ex.equipment.toLowerCase()));
+    const muscles = new Set(exercises.map(ex => ex.muscleGroup.toLowerCase()));
+    
+    return {
+      equipmentList: Array.from(equipment),
+      muscleList: Array.from(muscles)
+    };
+  }
 }; 

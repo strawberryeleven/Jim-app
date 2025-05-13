@@ -1,0 +1,278 @@
+# Profile System Documentation
+
+## Profile Schema
+
+```typescript
+interface Profile {
+  id: string;
+  userId: string;
+  username: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  avatarUrl?: string;
+  bio?: string;
+  dateOfBirth?: string;
+  gender?: 'male' | 'female' | 'other';
+  height?: number; // in cm
+  weight?: number; // in kg
+  fitnessGoals?: string[];
+  experienceLevel?: 'beginner' | 'intermediate' | 'advanced';
+  preferredWorkoutDays?: string[];
+  preferredWorkoutTime?: string;
+  socialLinks?: {
+    instagram?: string;
+    twitter?: string;
+    facebook?: string;
+    youtube?: string;
+  };
+  stats: {
+    totalWorkouts: number;
+    totalExercises: number;
+    totalRoutines: number;
+    totalLikes: number;
+    streakDays: number;
+    lastWorkoutDate?: string;
+  };
+  achievements: Achievement[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface Achievement {
+  id: string;
+  name: string;
+  description: string;
+  iconUrl: string;
+  unlockedAt: string;
+  progress?: number;
+  target?: number;
+}
+
+interface WorkoutHistory {
+  id: string;
+  date: string;
+  duration: number;
+  exercises: {
+    id: string;
+    name: string;
+    sets: number;
+    reps: number;
+    weight: number;
+  }[];
+  caloriesBurned: number;
+  notes?: string;
+}
+
+interface ProgressMetrics {
+  date: string;
+  weight: number;
+  bodyFat?: number;
+  muscleMass?: number;
+  measurements?: {
+    chest?: number;
+    waist?: number;
+    hips?: number;
+    biceps?: number;
+    thighs?: number;
+  };
+}
+```
+
+## API Endpoints
+
+### Profile Management
+
+1. Get Profile
+   - Endpoint: GET /api/profile
+   - Description: Retrieve the current user's profile
+   - Response: Profile object
+   - Authentication: Required
+
+2. Update Profile
+   - Endpoint: PUT /api/profile
+   - Description: Update user's profile information
+   - Request Body: Partial<Profile>
+   - Response: Updated Profile object
+   - Authentication: Required
+
+3. Upload Avatar
+   - Endpoint: POST /api/profile/avatar
+   - Description: Upload or update profile picture
+   - Request Body: FormData with image file
+   - Response: { avatarUrl: string }
+   - Authentication: Required
+
+### Statistics and Progress
+
+1. Get Workout History
+   - Endpoint: GET /api/profile/workouts
+   - Query Parameters: 
+     - startDate: string
+     - endDate: string
+     - limit: number
+     - page: number
+   - Response: { workouts: WorkoutHistory[], pagination: PaginationInfo }
+   - Authentication: Required
+
+2. Get Progress Metrics
+   - Endpoint: GET /api/profile/progress
+   - Query Parameters:
+     - startDate: string
+     - endDate: string
+   - Response: ProgressMetrics[]
+   - Authentication: Required
+
+3. Add Progress Entry
+   - Endpoint: POST /api/profile/progress
+   - Description: Add new progress metrics entry
+   - Request Body: ProgressMetrics
+   - Response: Created ProgressMetrics
+   - Authentication: Required
+
+### Achievements
+
+1. Get Achievements
+   - Endpoint: GET /api/profile/achievements
+   - Response: Achievement[]
+   - Authentication: Required
+
+2. Get Achievement Progress
+   - Endpoint: GET /api/profile/achievements/:id/progress
+   - Response: { progress: number, target: number }
+   - Authentication: Required
+
+### Social Features
+
+1. Get Followers
+   - Endpoint: GET /api/profile/followers
+   - Query Parameters:
+     - limit: number
+     - page: number
+   - Response: { followers: Profile[], pagination: PaginationInfo }
+   - Authentication: Required
+
+2. Get Following
+   - Endpoint: GET /api/profile/following
+   - Query Parameters:
+     - limit: number
+     - page: number
+   - Response: { following: Profile[], pagination: PaginationInfo }
+   - Authentication: Required
+
+3. Follow User
+   - Endpoint: POST /api/profile/follow/:userId
+   - Response: { success: boolean }
+   - Authentication: Required
+
+4. Unfollow User
+   - Endpoint: DELETE /api/profile/follow/:userId
+   - Response: { success: boolean }
+   - Authentication: Required
+
+### Settings
+
+1. Update Privacy Settings
+   - Endpoint: PUT /api/profile/privacy
+   - Request Body: {
+     isProfilePublic: boolean;
+     showWorkoutHistory: boolean;
+     showProgress: boolean;
+     showAchievements: boolean;
+   }
+   - Response: Updated settings
+   - Authentication: Required
+
+2. Update Notification Settings
+   - Endpoint: PUT /api/profile/notifications
+   - Request Body: {
+     emailNotifications: boolean;
+     pushNotifications: boolean;
+     workoutReminders: boolean;
+     achievementAlerts: boolean;
+   }
+   - Response: Updated settings
+   - Authentication: Required
+
+## Frontend Components Structure
+
+1. ProfileHeader
+   - Avatar
+   - Basic Info (name, username)
+   - Stats Overview
+   - Action Buttons (Edit, Share)
+
+2. ProfileTabs
+   - Overview
+   - Workouts
+   - Progress
+   - Achievements
+   - Settings
+
+3. ProfileStats
+   - Total Workouts
+   - Total Exercises
+   - Streak Days
+   - Total Likes
+
+4. ProgressChart
+   - Weight Progress
+   - Body Measurements
+   - Workout Frequency
+
+5. AchievementGallery
+   - Unlocked Achievements
+   - Progress towards next achievements
+
+6. WorkoutHistory
+   - Calendar View
+   - List View
+   - Detailed Workout Cards
+
+7. SettingsPanel
+   - Privacy Settings
+   - Notification Preferences
+   - Account Settings
+   - Social Links
+
+## State Management
+
+```typescript
+interface ProfileState {
+  profile: Profile | null;
+  loading: boolean;
+  error: string | null;
+  stats: {
+    workouts: WorkoutHistory[];
+    progress: ProgressMetrics[];
+    achievements: Achievement[];
+  };
+  settings: {
+    privacy: PrivacySettings;
+    notifications: NotificationSettings;
+  };
+}
+```
+
+## Required Redux Actions
+
+1. Profile Actions
+   - fetchProfile
+   - updateProfile
+   - uploadAvatar
+   - updateSettings
+
+2. Stats Actions
+   - fetchWorkoutHistory
+   - fetchProgressMetrics
+   - addProgressEntry
+
+3. Achievement Actions
+   - fetchAchievements
+   - updateAchievementProgress
+
+4. Social Actions
+   - fetchFollowers
+   - fetchFollowing
+   - followUser
+   - unfollowUser 

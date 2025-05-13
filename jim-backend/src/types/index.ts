@@ -154,15 +154,26 @@ export interface RoutineResponse {
     id: string;
     name: string;
     description: string;
-    workouts: {
-      workout: string;
-      day: number;
+    exercises: {
+      exerciseId: string;
+      sets: {
+        weight: number;
+        reps: number;
+        isCompleted: boolean;
+      }[];
       order: number;
     }[];
     createdBy: string;
     isPublic: boolean;
     likes: string[];
+    createdAt: string;
+    updatedAt: string;
   };
   routines?: any[];
+  pagination?: {
+    total: number;
+    page: number;
+    pages: number;
+  };
   message?: string;
 }

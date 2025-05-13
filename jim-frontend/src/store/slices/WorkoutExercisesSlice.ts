@@ -7,6 +7,7 @@ interface Set {
 }
 
 interface Exercise {
+  id: string;
   name: string;
   muscle: string;
   equipment: string;

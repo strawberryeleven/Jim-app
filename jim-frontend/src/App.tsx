@@ -35,6 +35,7 @@ import MeasurementsPage from "./pages/Profile/Settings/MeasurementsPage";
 import Calendar from "./pages/Profile/Calendar";
 import WorkoutDetailPage from "./pages/WorkoutDetailPage";
 import ViewRoutine from "./pages/Workout/Routine/ViewRoutine";
+import RoutineDetail from "@/pages/Workout/Routine/RoutineDetail";
 
 const queryClient = new QueryClient();
 
@@ -57,7 +58,7 @@ const AppContent = () => {
           <Route path="/workout" element={<Workout />} />
           <Route path="/create-routine" element={<CreateRoutine />} />
           <Route path="/getting-started" element={<GettingStarted />} />
-          <Route path="/add-exercise2" element={<AddRoutineExercise />} />
+          <Route path="/add-routine-exercise" element={<AddRoutineExercise />} />
           <Route path="/edit-routine" element={<EditRoutine />} />
           <Route path="/edit-routine/:id" element={<EditRoutine />} />
           <Route path="/view-routine/:id" element={<ViewRoutine />} />
@@ -78,6 +79,7 @@ const AppContent = () => {
           <Route path="/calendar" element={<Calendar />} />
           <Route path="/calendar/:date" element={<WorkoutDetailPage />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/routine/:id" element={<RoutineDetail />} />
         </Route>
 
         {/* 404 Route */}

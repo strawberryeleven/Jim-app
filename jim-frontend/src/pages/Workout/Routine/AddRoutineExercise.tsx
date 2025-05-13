@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, Plus, Check } from "lucide-react";
 import { Input } from "@/components/forms/input";
@@ -12,19 +12,49 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/forms/select";
-import { exercises, equipmentList, muscleList } from "@/data/RoutineExerciseData";
 import { useAppDispatch, useAppSelector } from "@/hooks/redux-hooks";
 import { addExercise } from "@/store/slices/WorkoutExercisesSlice";
+import { exerciseService, Exercise } from "@/services/exerciseService";
+import { useToast } from "@/components/tooltips/use-toast";
 
 const AddRoutineExercise = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
+  const { toast } = useToast();
 
   const selectedExercises = useAppSelector((state) => state.exercises.selectedExercises);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedEquipment, setSelectedEquipment] = useState("all-equipment");
   const [selectedMuscle, setSelectedMuscle] = useState("all-muscles");
+  const [exercises, setExercises] = useState<Exercise[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [equipmentList, setEquipmentList] = useState<string[]>([]);
+  const [muscleList, setMuscleList] = useState<string[]>([]);
+
+  useEffect(() => {
+    const fetchExercises = async () => {
+      try {
+        const data = await exerciseService.getAllExercises();
+        setExercises(data);
+        const { equipmentList, muscleList } = exerciseService.getUniqueEquipmentAndMuscles(data);
+        setEquipmentList(equipmentList);
+        setMuscleList(muscleList);
+        setLoading(false);
+      } catch (err) {
+        setError('Failed to fetch exercises');
+        setLoading(false);
+        toast({
+          title: "Error",
+          description: "Failed to load exercises. Please try again.",
+          variant: "destructive",
+        });
+      }
+    };
+
+    fetchExercises();
+  }, [toast]);
 
   const isExerciseSelected = (exerciseName: string) => {
     return selectedExercises.some((ex) => ex.name === exerciseName);
@@ -39,21 +69,49 @@ const AddRoutineExercise = () => {
   const filteredExercises = exercises.filter((exercise) => {
     const matchesSearch = exercise.name.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesEquipment =
-      selectedEquipment === "all-equipment" || exercise.equipment === selectedEquipment;
+      selectedEquipment === "all-equipment" || exercise.equipment.toLowerCase() === selectedEquipment;
     const matchesMuscle =
-      selectedMuscle === "all-muscles" || exercise.muscle === selectedMuscle;
+      selectedMuscle === "all-muscles" || exercise.muscleGroup.toLowerCase() === selectedMuscle;
 
     return matchesSearch && matchesEquipment && matchesMuscle;
   });
 
-  const handleAddExercise = (exercise: typeof exercises[0]) => {
+  const handleAddExercise = (exercise: Exercise) => {
     if (!isExerciseSelected(exercise.name)) {
       dispatch(addExercise({
-        ...exercise,
+        id: exercise.id,
+        name: exercise.name,
+        muscle: exercise.muscleGroup.toLowerCase(),
+        equipment: exercise.equipment.toLowerCase(),
+        image: exercise.imageUrl,
         sets: [{ weight: '', reps: '' }],
       }));
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto"></div>
+          <p className="mt-4">Loading exercises...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-500">{error}</p>
+          <Button onClick={() => window.location.reload()} className="mt-4">
+            Try Again
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -86,7 +144,7 @@ const AddRoutineExercise = () => {
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-2">
+        <div className="space-y-2">
           <Select value={selectedEquipment} onValueChange={setSelectedEquipment}>
             <SelectTrigger className="w-full bg-gray-200 text-black border-zinc-800">
               <SelectValue placeholder="All Equipment" />
@@ -128,12 +186,12 @@ const AddRoutineExercise = () => {
             <div className="space-y-4">
               {filteredExercises.map((exercise) => (
                 <div
-                  key={exercise.name}
+                  key={exercise.id}
                   className="flex items-center space-x-4 p-2 hover:bg-zinc-900 rounded-lg transition-colors"
                 >
                   <div className="w-20 h-20 bg-zinc-800 rounded-lg overflow-hidden">
                     <img
-                      src={exercise.image || "/images/default.png"}
+                      src={exercise.imageUrl || "/images/default.png"}
                       alt={exercise.name}
                       className="w-full h-full object-cover"
                     />
@@ -141,7 +199,7 @@ const AddRoutineExercise = () => {
                   <div className="flex-1">
                     <h3 className="font-medium">{exercise.name}</h3>
                     <p className="text-sm text-gray-400">
-                      {exercise.muscle} • {exercise.equipment}
+                      {exercise.muscleGroup} • {exercise.equipment}
                     </p>
                   </div>
 

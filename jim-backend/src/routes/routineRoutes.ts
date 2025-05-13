@@ -6,13 +6,15 @@ import { validateRoutine } from '../middleware/validateInput';
 
 const router = Router();
 
+// Public routes
 router.get('/', generalRateLimiter, RoutineController.getRoutines);
 router.get('/:id', generalRateLimiter, RoutineController.getRoutine);
+
+// Protected routes
+router.get('/user/:userId', authenticateToken, generalRateLimiter, RoutineController.getUserRoutines);
 router.post('/', authenticateToken, generalRateLimiter, validateRoutine, RoutineController.createRoutine);
 router.put('/:id', authenticateToken, generalRateLimiter, validateRoutine, RoutineController.updateRoutine);
 router.delete('/:id', authenticateToken, generalRateLimiter, RoutineController.deleteRoutine);
 router.post('/:id/like', authenticateToken, generalRateLimiter, RoutineController.likeRoutine);
-router.delete('/:id/like', authenticateToken, generalRateLimiter, RoutineController.unlikeRoutine);
-router.get('/user/:userId', generalRateLimiter, RoutineController.getUserRoutines);
 
 export default router;

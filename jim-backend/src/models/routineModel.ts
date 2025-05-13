@@ -3,9 +3,13 @@ import mongoose, { Schema, Document } from 'mongoose';
 export interface IRoutine extends Document {
   name: string;
   description: string;
-  workouts: {
-    workout: mongoose.Types.ObjectId;
-    day: number;
+  exercises: {
+    exerciseId: mongoose.Types.ObjectId;
+    sets: {
+      weight: number;
+      reps: number;
+      isCompleted: boolean;
+    }[];
     order: number;
   }[];
   createdBy: mongoose.Types.ObjectId;
@@ -27,22 +31,30 @@ const routineSchema: Schema = new Schema(
       required: true,
       trim: true,
     },
-    workouts: [{
-      workout: {
+    exercises: [{
+      exerciseId: {
         type: Schema.Types.ObjectId,
-        ref: 'Workout',
+        ref: 'Exercise',
         required: true,
       },
-      day: {
-        type: Number,
-        required: true,
-        min: 1,
-        max: 7,
-      },
+      sets: [{
+        weight: {
+          type: Number,
+          required: true,
+        },
+        reps: {
+          type: Number,
+          required: true,
+        },
+        isCompleted: {
+          type: Boolean,
+          default: false,
+        }
+      }],
       order: {
         type: Number,
         required: true,
-      },
+      }
     }],
     createdBy: {
       type: Schema.Types.ObjectId,
@@ -51,7 +63,6 @@ const routineSchema: Schema = new Schema(
     },
     isPublic: {
       type: Boolean,
-      required: true,
       default: false,
     },
     likes: [{
@@ -74,4 +85,6 @@ const routineSchema: Schema = new Schema(
 routineSchema.index({ createdBy: 1 });
 routineSchema.index({ isPublic: 1 });
 
-export default mongoose.model<IRoutine>('Routine', routineSchema);
+const Routine = mongoose.model<IRoutine>('Routine', routineSchema);
+
+export default Routine;
