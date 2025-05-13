@@ -1,8 +1,8 @@
-
 import { Request, Response } from 'express';
 import User from '../models/userModel';
 import { ErrorResponse, UserResponse, UsersResponse } from '../types';
 import { mapUserToResponse } from '../utils/mappers';
+import bcrypt from 'bcryptjs';
 
 export class UserController {
   static async getUser(req: Request, res: Response) {
@@ -174,6 +174,112 @@ export class UserController {
       const response: UsersResponse = {
         success: true,
         users: user.following.map((f: any) => mapUserToResponse(f)),
+      };
+      res.json(response);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  static async updateName(req: Request, res: Response) {
+    try {
+      const user = await User.findByIdAndUpdate(
+        (req as any).user.userId,
+        { name: req.body.name },
+        { new: true }
+      ).lean();
+
+      if (!user) {
+        const response: ErrorResponse = {
+          success: false,
+          error: 'User not found',
+          code: 'USER_NOT_FOUND',
+        };
+        return res.status(404).json(response);
+      }
+
+      const response: UserResponse = {
+        success: true,
+        user: mapUserToResponse(user),
+      };
+      res.json(response);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  static async updateEmail(req: Request, res: Response) {
+    try {
+      // Check if email is already taken
+      const existingUser = await User.findOne({ email: req.body.email });
+      if (existingUser) {
+        const response: ErrorResponse = {
+          success: false,
+          error: 'Email is already taken',
+          code: 'EMAIL_TAKEN',
+        };
+        return res.status(400).json(response);
+      }
+
+      const user = await User.findByIdAndUpdate(
+        (req as any).user.userId,
+        { email: req.body.email },
+        { new: true }
+      ).lean();
+
+      if (!user) {
+        const response: ErrorResponse = {
+          success: false,
+          error: 'User not found',
+          code: 'USER_NOT_FOUND',
+        };
+        return res.status(404).json(response);
+      }
+
+      const response: UserResponse = {
+        success: true,
+        user: mapUserToResponse(user),
+      };
+      res.json(response);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  static async updatePassword(req: Request, res: Response) {
+    try {
+      const user = await User.findById((req as any).user.userId);
+      if (!user) {
+        const response: ErrorResponse = {
+          success: false,
+          error: 'User not found',
+          code: 'USER_NOT_FOUND',
+        };
+        return res.status(404).json(response);
+      }
+
+      // Verify current password
+      const isMatch = await bcrypt.compare(req.body.currentPassword, user.password);
+      if (!isMatch) {
+        const response: ErrorResponse = {
+          success: false,
+          error: 'Current password is incorrect',
+          code: 'INVALID_PASSWORD',
+        };
+        return res.status(400).json(response);
+      }
+
+      // Hash new password
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(req.body.newPassword, salt);
+
+      // Update password
+      user.password = hashedPassword;
+      await user.save();
+
+      const response: UserResponse = {
+        success: true,
+        message: 'Password updated successfully',
       };
       res.json(response);
     } catch (error) {

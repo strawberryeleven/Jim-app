@@ -1,0 +1,298 @@
+Workout Log API Documentation
+===========================
+
+All endpoints require authentication via Bearer token in the Authorization header.
+Base URL: http://localhost:3000/api/workout-logs
+
+1. Get All Workout Logs
+----------------------
+GET /
+
+Headers:
+- Authorization: Bearer <token>
+
+Query Parameters:
+- page: number (default: 1)
+- limit: number (default: 10)
+- isPublic: boolean (optional, filter public logs)
+
+Response (200 OK):
+{
+  "success": true,
+  "workoutLogs": [
+    {
+      "id": string,
+      "userId": string,
+      "title": string,
+      "time": string,
+      "volume": string,
+      "date": string,
+      "isPublic": boolean,
+      "notes": string,
+      "exercises": [
+        {
+          "name": string,
+          "sets": number,
+          "image": string,
+          "weight": number,
+          "reps": number,
+          "muscle": string
+        }
+      ],
+      "totalSets": number,
+      "duration": number,
+      "muscleGroups": {
+        "muscleName": number
+      }
+    }
+  ],
+  "pagination": {
+    "total": number,
+    "page": number,
+    "pages": number
+  }
+}
+
+2. Create Workout Log
+-------------------
+POST /
+
+Headers:
+- Authorization: Bearer <token>
+- Content-Type: application/json
+
+Request Body:
+{
+  "title": string,          // Required
+  "time": string,          // Required, ISO date string
+  "volume": string,        // Required
+  "date": string,          // Required, ISO date string
+  "isPublic": boolean,     // Optional, defaults to false
+  "notes": string,         // Optional
+  "exercises": [           // Required, at least one exercise
+    {
+      "name": string,      // Required
+      "sets": number,      // Required
+      "image": string,     // Required
+      "weight": number,    // Optional
+      "reps": number,      // Optional
+      "muscle": string     // Optional
+    }
+  ],
+  "totalSets": number,     // Required
+  "duration": number,      // Required, in minutes
+  "muscleGroups": {        // Required
+    "muscleName": number   // Key: muscle group name, Value: total volume
+  }
+}
+
+Response (201 Created):
+{
+  "success": true,
+  "workoutLog": {
+    "id": string,
+    "userId": string,
+    "title": string,
+    "time": string,
+    "volume": string,
+    "date": string,
+    "isPublic": boolean,
+    "notes": string,
+    "exercises": [
+      {
+        "name": string,
+        "sets": number,
+        "image": string,
+        "weight": number,
+        "reps": number,
+        "muscle": string
+      }
+    ],
+    "totalSets": number,
+    "duration": number,
+    "muscleGroups": {
+      "muscleName": number
+    }
+  }
+}
+
+3. Update Workout Log
+-------------------
+PUT /:id
+
+Headers:
+- Authorization: Bearer <token>
+- Content-Type: application/json
+
+Request Body:
+{
+  "title": string,          // Optional
+  "time": string,          // Optional, ISO date string
+  "volume": string,        // Optional
+  "date": string,          // Optional, ISO date string
+  "isPublic": boolean,     // Optional
+  "notes": string,         // Optional
+  "exercises": [           // Optional
+    {
+      "name": string,      // Required if exercise provided
+      "sets": number,      // Required if exercise provided
+      "image": string,     // Required if exercise provided
+      "weight": number,    // Optional
+      "reps": number,      // Optional
+      "muscle": string     // Optional
+    }
+  ],
+  "totalSets": number,     // Optional
+  "duration": number,      // Optional
+  "muscleGroups": {        // Optional
+    "muscleName": number   // Key: muscle group name, Value: total volume
+  }
+}
+
+Response (200 OK):
+{
+  "success": true,
+  "workoutLog": {
+    "id": string,
+    "userId": string,
+    "title": string,
+    "time": string,
+    "volume": string,
+    "date": string,
+    "isPublic": boolean,
+    "notes": string,
+    "exercises": [
+      {
+        "name": string,
+        "sets": number,
+        "image": string,
+        "weight": number,
+        "reps": number,
+        "muscle": string
+      }
+    ],
+    "totalSets": number,
+    "duration": number,
+    "muscleGroups": {
+      "muscleName": number
+    }
+  }
+}
+
+4. Delete Workout Log
+-------------------
+DELETE /:id
+
+Headers:
+- Authorization: Bearer <token>
+
+Response (200 OK):
+{
+  "success": true,
+  "message": "Workout log deleted successfully"
+}
+
+5. Get Workout Stats
+------------------
+GET /stats
+
+Headers:
+- Authorization: Bearer <token>
+
+Response (200 OK):
+{
+  "success": true,
+  "stats": {
+    "totalWorkouts": number,
+    "totalDuration": number,
+    "totalVolume": number,
+    "totalSets": number,
+    "muscleGroups": {
+      "muscleName": number
+    }
+  }
+}
+
+Error Responses
+-------------
+All endpoints may return the following error responses:
+
+1. Authentication Error (401 Unauthorized):
+{
+  "success": false,
+  "error": "Unauthorized access",
+  "code": "UNAUTHORIZED"
+}
+
+2. Not Found Error (404 Not Found):
+{
+  "success": false,
+  "error": "Workout log not found",
+  "code": "WORKOUT_LOG_NOT_FOUND"
+}
+
+3. Validation Error (400 Bad Request):
+{
+  "success": false,
+  "error": "Invalid workout log input",
+  "code": "INVALID_INPUT"
+}
+
+4. Server Error (500 Internal Server Error):
+{
+  "success": false,
+  "error": "Internal server error",
+  "code": "INTERNAL_ERROR"
+}
+
+Example Usage
+-----------
+1. Get all workout logs:
+curl -X GET "http://localhost:3000/api/workout-logs?page=1&limit=10" \
+  -H "Authorization: Bearer your_token_here"
+
+2. Create a workout log:
+curl -X POST http://localhost:3000/api/workout-logs \
+  -H "Authorization: Bearer your_token_here" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Upper Body Workout",
+    "time": "2024-03-20T10:00:00.000Z",
+    "volume": "5000",
+    "date": "2024-03-20T10:00:00.000Z",
+    "isPublic": true,
+    "notes": "Great workout!",
+    "exercises": [
+      {
+        "name": "Bench Press",
+        "sets": 3,
+        "image": "bench_press.jpg",
+        "weight": 80,
+        "reps": 10,
+        "muscle": "chest"
+      }
+    ],
+    "totalSets": 3,
+    "duration": 60,
+    "muscleGroups": {
+      "chest": 2400,
+      "shoulders": 1200,
+      "triceps": 1400
+    }
+  }'
+
+3. Update a workout log:
+curl -X PUT http://localhost:3000/api/workout-logs/workout_log_id \
+  -H "Authorization: Bearer your_token_here" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "notes": "Updated notes"
+  }'
+
+4. Delete a workout log:
+curl -X DELETE http://localhost:3000/api/workout-logs/workout_log_id \
+  -H "Authorization: Bearer your_token_here"
+
+5. Get workout stats:
+curl -X GET http://localhost:3000/api/workout-logs/stats \
+  -H "Authorization: Bearer your_token_here" 

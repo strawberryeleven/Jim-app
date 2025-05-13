@@ -94,18 +94,22 @@ export const mapWorkoutToResponse = (workout: IWorkout & { _id: any; __v?: numbe
 
 export const mapWorkoutLogToResponse = (log: IWorkoutLog & { _id: any; __v?: number }): WorkoutLogResponse['log'] => ({
   id: log._id.toString(),
-  user: log.user.toString(),
-  workout: log.workout.toString(),
-  date: log.date,
-  exercises: log.exercises.map(e => ({
-    exercise: e.exercise.toString(),
-    sets: e.sets.map(s => ({
-      reps: s.reps,
-      weight: s.weight,
-      duration: s.duration,
-      completed: s.completed,
-    })),
-  })),
+  userId: log.userId.toString(),
+  title: log.title,
+  time: log.time,
+  volume: log.volume,
+  date: new Date(log.date),
+  isPublic: log.isPublic,
   notes: log.notes,
+  exercises: log.exercises.map(e => ({
+    name: e.name,
+    sets: e.sets,
+    image: e.image,
+    weight: e.weight,
+    reps: e.reps,
+    muscle: e.muscle
+  })),
+  totalSets: log.totalSets,
   duration: log.duration,
+  muscleGroups: log.muscleGroups instanceof Map ? Object.fromEntries(log.muscleGroups) : log.muscleGroups
 });

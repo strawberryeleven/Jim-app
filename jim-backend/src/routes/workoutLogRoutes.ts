@@ -1,17 +1,24 @@
-import { Router } from 'express';
+import express from 'express';
 import { WorkoutLogController } from '../controllers/workoutLogController';
 import { authenticateToken } from '../middleware/authMiddleware';
 import { generalRateLimiter } from '../middleware/rateLimiter';
 import { validateWorkoutLog } from '../middleware/validateInput';
 
-const router = Router();
+const router = express.Router();
 
-router.get('/', authenticateToken, generalRateLimiter, WorkoutLogController.getWorkoutLogs);
-router.get('/stats', authenticateToken, generalRateLimiter, WorkoutLogController.getStats);
-router.get('/user/:userId', authenticateToken, generalRateLimiter, WorkoutLogController.getUserWorkoutLogs);
-router.get('/:id', authenticateToken, generalRateLimiter, WorkoutLogController.getWorkoutLog);
-router.post('/', authenticateToken, generalRateLimiter, validateWorkoutLog, WorkoutLogController.createWorkoutLog);
-router.put('/:id', authenticateToken, generalRateLimiter, validateWorkoutLog, WorkoutLogController.updateWorkoutLog);
-router.delete('/:id', authenticateToken, generalRateLimiter, WorkoutLogController.deleteWorkoutLog);
+// Protected routes
+router.use(authenticateToken);
+
+// Get all workout logs (with pagination and public filter)
+router.get('/', generalRateLimiter, WorkoutLogController.getWorkoutLogs);
+
+// Create a new workout log
+router.post('/', generalRateLimiter, validateWorkoutLog, WorkoutLogController.createWorkoutLog);
+
+// Update a workout log
+router.put('/:id', generalRateLimiter, validateWorkoutLog, WorkoutLogController.updateWorkoutLog);
+
+// Delete a workout log
+router.delete('/:id', generalRateLimiter, WorkoutLogController.deleteWorkoutLog);
 
 export default router;

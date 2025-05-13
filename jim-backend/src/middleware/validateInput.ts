@@ -147,24 +147,26 @@ const workoutUpdateSchema = z.object({
   isPublic: z.boolean().optional(),
 });
 
+const exerciseSummarySchema = z.object({
+  name: z.string().min(1, 'Exercise name is required'),
+  sets: z.number().int().min(1, 'At least one set is required'),
+  image: z.string().min(1, 'Image path is required'),
+  weight: z.number().optional(),
+  reps: z.number().int().optional(),
+  muscle: z.string().optional()
+});
+
 const workoutLogSchema = z.object({
-  workout: z.string().min(1),
-  date: z.string().datetime(),
-  exercises: z.array(
-    z.object({
-      exercise: z.string().min(1),
-      sets: z.array(
-        z.object({
-          reps: z.number().int().min(1),
-          weight: z.number().optional(),
-          duration: z.number().optional(),
-          completed: z.boolean(),
-        })
-      ).min(1),
-    })
-  ).min(1),
+  title: z.string().min(1, 'Title is required'),
+  time: z.string().min(1, 'Time is required'),
+  volume: z.string().min(1, 'Volume is required'),
+  date: z.string().datetime('Valid date is required'),
+  isPublic: z.boolean().default(false),
   notes: z.string().optional(),
-  duration: z.number().int().min(0),
+  exercises: z.array(exerciseSummarySchema).min(1, 'At least one exercise is required'),
+  totalSets: z.number().int().min(1, 'Total sets must be at least 1'),
+  duration: z.number().int().min(1, 'Duration must be at least 1 minute'),
+  muscleGroups: z.record(z.string(), z.number())
 });
 
 const workoutLogUpdateSchema = z.object({
@@ -185,6 +187,35 @@ const workoutLogUpdateSchema = z.object({
   ).min(1).optional(),
   notes: z.string().optional(),
   duration: z.number().int().min(0).optional(),
+});
+
+const updateNameSchema = z.object({
+  name: z.string().min(1, 'Name is required'),
+});
+
+const updateEmailSchema = z.object({
+  email: z.string().email('Invalid email format'),
+});
+
+const updatePasswordSchema = z.object({
+  currentPassword: z.string().min(1, 'Current password is required'),
+  newPassword: z.string().min(8, 'New password must be at least 8 characters long'),
+});
+
+const profileSchema = z.object({
+  username: z.string().min(1, 'Username is required'),
+  bio: z.string().optional(),
+  link: z.string().url().optional(),
+  sex: z.enum(['male', 'female', 'other']).optional(),
+  DOB: z.string().datetime().optional(),
+});
+
+const measurementSchema = z.object({
+  date: z.string().datetime(),
+  weight: z.number().min(0),
+  chest: z.number().min(0),
+  waist: z.number().min(0),
+  arms: z.number().min(0),
 });
 
 export const validateExercise = (req: Request, res: Response, next: NextFunction) => {
@@ -257,16 +288,82 @@ export const validateWorkout = (req: Request, res: Response, next: NextFunction)
 
 export const validateWorkoutLog = (req: Request, res: Response, next: NextFunction) => {
   try {
-    if (req.method === 'PUT') {
-      workoutLogUpdateSchema.parse(req.body);
-    } else {
-      workoutLogSchema.parse(req.body);
-    }
+    workoutLogSchema.parse(req.body);
     next();
   } catch (error) {
     const response: ErrorResponse = {
       success: false,
       error: 'Invalid workout log input',
+      code: 'INVALID_INPUT',
+    };
+    res.status(400).json(response);
+  }
+};
+
+export const validateUpdateName = (req: Request, res: Response, next: NextFunction) => {
+  try {
+    updateNameSchema.parse(req.body);
+    next();
+  } catch (error) {
+    const response: ErrorResponse = {
+      success: false,
+      error: 'Invalid name update input',
+      code: 'INVALID_INPUT',
+    };
+    res.status(400).json(response);
+  }
+};
+
+export const validateUpdateEmail = (req: Request, res: Response, next: NextFunction) => {
+  try {
+    updateEmailSchema.parse(req.body);
+    next();
+  } catch (error) {
+    const response: ErrorResponse = {
+      success: false,
+      error: 'Invalid email update input',
+      code: 'INVALID_INPUT',
+    };
+    res.status(400).json(response);
+  }
+};
+
+export const validateUpdatePassword = (req: Request, res: Response, next: NextFunction) => {
+  try {
+    updatePasswordSchema.parse(req.body);
+    next();
+  } catch (error) {
+    const response: ErrorResponse = {
+      success: false,
+      error: 'Invalid password update input',
+      code: 'INVALID_INPUT',
+    };
+    res.status(400).json(response);
+  }
+};
+
+export const validateProfile = (req: Request, res: Response, next: NextFunction) => {
+  try {
+    profileSchema.parse(req.body);
+    next();
+  } catch (error) {
+    const response: ErrorResponse = {
+      success: false,
+      error: 'Invalid profile input',
+      code: 'INVALID_INPUT',
+    };
+    res.status(400).json(response);
+  }
+};
+
+export const validateMeasurement = (req: Request, res: Response, next: NextFunction) => {
+  try {
+    measurementSchema.parse(req.body);
+    next();
+  } catch (error) {
+    const response: ErrorResponse = {
+      success: false,
+      error: 'Invalid measurement input',
       code: 'INVALID_INPUT',
     };
     res.status(400).json(response);

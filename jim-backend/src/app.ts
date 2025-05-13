@@ -9,6 +9,8 @@ import exerciseRoutes from './routes/exerciseRoutes';
 import workoutRoutes from './routes/workoutRoutes';
 import routineRoutes from './routes/routineRoutes';
 import workoutLogRoutes from './routes/workoutLogRoutes';
+import profileRoutes from './routes/profileRoutes';
+import measurementRoutes from './routes/measurementRoutes';
 import { errorHandler } from './middleware/errorMiddleware';
 
 // Load environment variables
@@ -45,6 +47,8 @@ app.use('/api/exercises', exerciseRoutes);
 app.use('/api/workouts', workoutRoutes);
 app.use('/api/routines', routineRoutes);
 app.use('/api/workout-logs', workoutLogRoutes);
+app.use('/api/profile', profileRoutes);
+app.use('/api/measurements', measurementRoutes);
 
 // Error Handler
 app.use(errorHandler);

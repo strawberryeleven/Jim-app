@@ -39,7 +39,7 @@ const initialData: Record<string, WorkoutLog[]> = {
   "2024-03-20": [
     {
       id: "1",
-      title: "Upper Body Power",
+      title: "Upper Body",
       time: "14:30",
       volume: "2500",
       date: "2024-03-20",
@@ -110,9 +110,22 @@ export const fetchWorkoutLogs = createAsyncThunk(
   "workoutLogs/fetchWorkoutLogs",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await workoutLogService.getWorkoutLogs();
-      return response.data;
+      const response = await workoutLogService.getAllWorkoutLogs();
+      console.log('Fetched workout logs:', response);
+      
+      // Transform the response into the expected format
+      const logsByDate: Record<string, WorkoutLog[]> = {};
+      response.logs.forEach((log: WorkoutLog) => {
+        const date = log.date.split('T')[0]; // Extract just the date part
+        if (!logsByDate[date]) {
+          logsByDate[date] = [];
+        }
+        logsByDate[date].push(log);
+      });
+      
+      return logsByDate;
     } catch (error) {
+      console.error('Error fetching workout logs:', error);
       return rejectWithValue("Failed to fetch workout logs");
     }
   }

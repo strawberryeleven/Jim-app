@@ -13,6 +13,7 @@ import DiscardWorkoutDialog from "@/components/workout/DiscardWorkoutDialog";
 import { useDispatch } from "react-redux";
 import { addWorkoutLog } from "@/store/slices/WorkoutLogSlice";
 import { AppDispatch } from "@/store/store";
+import { workoutLogService } from "@/services/workoutLogService";
 
 const SaveWorkout = () => {
   const navigate = useNavigate();
@@ -48,59 +49,87 @@ const SaveWorkout = () => {
   const volume = calculateVolume();
   const totalSets = calculateTotalSets();
 
-  const handleSave = () => {
-    const workout = {
-      title,
-      description,
-      image,
-      visibility,
-      dateTime: new Date().toISOString(),
-      duration: formattedDuration,
-      volume,
-      totalSets,
-      exercises: selectedExercises,
-    };
+  const handleSave = async () => {
+    try {
+      const now = new Date();
+      
+      // Calculate total volume
+      const totalVolume = selectedExercises.reduce((total, exercise) => {
+        return total + exercise.sets.reduce((subTotal, set) => {
+          return subTotal + (set.included ? (set.kg || 0) * (set.reps || 0) : 0);
+        }, 0);
+      }, 0);
 
-    const savedWorkouts = JSON.parse(localStorage.getItem("workouts") || "[]");
-    savedWorkouts.push(workout);
-    localStorage.setItem("workouts", JSON.stringify(savedWorkouts));
-
-    const date = new Date().toLocaleDateString("en-US");
-    const log = {
-      id: Date.now().toString(),
-      title,
-      time: formattedDuration,
-      volume: `${volume}`,
-      date,
-      isPublic: visibility === "Public",
-      notes: description,
-      exercises: selectedExercises.map(exercise => ({
-        name: exercise.name,
-        sets: exercise.sets.length,
-        image: exercise.image || "",
-        weight: exercise.sets[0]?.kg,
-        reps: exercise.sets[0]?.reps,
-        muscle: exercise.muscle
-      })),
-      totalSets,
-      duration: Math.floor(duration / 60),
-      muscleGroups: selectedExercises.reduce((acc, exercise) => {
+      // Calculate muscle groups volume
+      const muscleGroupsVolume = selectedExercises.reduce((acc, exercise) => {
         if (exercise.muscle) {
-          acc[exercise.muscle] = (acc[exercise.muscle] || 0) + volume;
+          const exerciseVolume = exercise.sets.reduce((total, set) => {
+            return total + (set.included ? (set.kg || 0) * (set.reps || 0) : 0);
+          }, 0);
+          acc[exercise.muscle] = (acc[exercise.muscle] || 0) + exerciseVolume;
         }
         return acc;
-      }, {} as Record<string, number>)
-    };
-    dispatch(addWorkoutLog(log));
+      }, {} as Record<string, number>);
 
-    toast({
-      title: "Workout saved!",
-      description: "Your workout has been successfully saved.",
-    });
+      const workoutLogData = {
+        title: title.trim(),
+        time: now.toISOString(),
+        volume: totalVolume.toString(),
+        date: now.toISOString(),
+        isPublic: visibility === "Public",
+        notes: description.trim(),
+        exercises: selectedExercises.map(exercise => ({
+          name: exercise.name,
+          sets: exercise.sets.filter(set => set.included).length,
+          image: exercise.image || "https://example.com/default-exercise.jpg",
+          weight: exercise.sets[0]?.kg || 0,
+          reps: exercise.sets[0]?.reps || 0,
+          muscle: exercise.muscle || "other"
+        })),
+        totalSets: selectedExercises.reduce((total, exercise) => 
+          total + exercise.sets.filter(set => set.included).length, 0),
+        duration: Math.floor(duration / 60),
+        muscleGroups: muscleGroupsVolume
+      };
 
-    clearExercises();
-    resetStartTime();
-    navigate("/workout");
+      // Log the data being sent
+      console.log('Preparing workout log data:', workoutLogData);
+
+      // Validate data before sending
+      if (!workoutLogData.title) {
+        throw new Error('Please enter a workout title');
+      }
+
+      if (workoutLogData.exercises.length === 0) {
+        throw new Error('Please add at least one exercise');
+      }
+
+      if (workoutLogData.totalSets === 0) {
+        throw new Error('Please add at least one set');
+      }
+
+      // Save to backend
+      const response = await workoutLogService.createWorkoutLog(workoutLogData);
+
+      // Update Redux store
+      dispatch(addWorkoutLog(response));
+
+      toast({
+        title: "Workout saved!",
+        description: "Your workout has been successfully saved.",
+      });
+
+      clearExercises();
+      resetStartTime();
+      navigate("/workout");
+    } catch (error) {
+      console.error('Error saving workout:', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to save workout. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleGoBack = () => navigate("/log-workout");

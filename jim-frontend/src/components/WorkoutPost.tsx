@@ -1,10 +1,13 @@
 import { useState } from 'react';
-import { UserCircle, ThumbsUp, MessageCircle, Share2 } from 'lucide-react';
+import { UserCircle, ThumbsUp, MessageCircle, Share2, Clock, Dumbbell } from 'lucide-react';
 
 interface Exercise {
   name: string;
   sets: number;
   image: string;
+  weight?: number;
+  reps?: number;
+  muscle?: string;
 }
 
 interface Comment {
@@ -17,10 +20,17 @@ interface Comment {
 }
 
 interface Workout {
+  id: string;
   title: string;
   time: string;
   volume: string;
+  date: string;
+  isPublic: boolean;
+  notes?: string;
   exercises: Exercise[];
+  totalSets: number;
+  duration: number;
+  muscleGroups?: Record<string, number>;
 }
 
 interface WorkoutPostProps {
@@ -104,12 +114,12 @@ export default function WorkoutPost({ workout }: WorkoutPostProps) {
 
   const renderComments = (cmts: Comment[], level = 0) => (
     <div className="text-sm text-white space-y-2">
-      {cmts.map((cmt) => (
+      {cmts.map(cmt => (
         <div key={cmt.id} className="border-t pt-2 ml-[${level * 20}px]">
           <div className="flex items-start space-x-2">
-            <UserCircle className="w-5 h-5  mt-1" />
+            <UserCircle className="w-5 h-5 mt-1" />
             <div className="flex-1">
-              <div className="font-semibold ">raffat2</div> 
+              <div className="font-semibold">raffat2</div> 
               <div>{cmt.text}</div>
               <div className="flex space-x-4 text-xs mt-1">
                 <span
@@ -132,7 +142,7 @@ export default function WorkoutPost({ workout }: WorkoutPostProps) {
                     value={cmt.newReply}
                     onChange={(e) => handleReplyChange(cmt.id, e.target.value)}
                     placeholder="Write a reply..."
-                    className="w-full p-1 border rounded  bg-black/30 text-xs"
+                    className="w-full p-1 border rounded bg-black/30 text-xs"
                   />
                   <button
                     onClick={() => handleAddReply(cmt.id)}
@@ -153,34 +163,55 @@ export default function WorkoutPost({ workout }: WorkoutPostProps) {
   return (
     <div className="p-4 rounded-xl text-white bg-black/40 shadow space-y-3 border border-gray-700">
       <div className="flex items-center space-x-3">
-        <UserCircle className="w-8 h-8 " />
+        <UserCircle className="w-8 h-8" />
         <div>
           <div className="font-semibold">raffat2</div>
-          <div className="text-xs ">Today</div>
+          <div className="text-xs">{new Date(workout.date).toLocaleDateString()}</div>
         </div>
       </div>
 
       <div className="text-base font-bold mt-2">{workout.title}</div>
 
-      <div className="flex justify-between text-sm ">
-        <span>Time: {workout.time}</span>
-        <span>Volume: {workout.volume}</span>
+      <div className="grid grid-cols-3 gap-4 text-sm">
+        <div className="flex items-center space-x-2">
+          <Clock className="w-4 h-4" />
+          <span>{workout.duration} min</span>
+        </div>
+        <div className="flex items-center space-x-2">
+          <Dumbbell className="w-4 h-4" />
+          <span>{workout.volume} kg</span>
+        </div>
+        <div className="flex items-center space-x-2">
+          <ThumbsUp className="w-4 h-4" />
+          <span>{workout.totalSets} sets</span>
+        </div>
       </div>
 
       <div className="space-y-2 mt-2">
         {workout.exercises.map((ex, i) => (
-          <div key={i} className="flex items-center space-x-4">
+          <div key={i} className="flex items-center space-x-4 bg-zinc-800/50 p-3 rounded-lg">
             <img
               src={ex.image}
-              alt="Exercise"
-              className="w-12 h-12 object-contain rounded"
+              alt={ex.name}
+              className="w-12 h-12 object-cover rounded"
             />
-            <div className="text-sm">
-              {ex.sets} set {ex.name}
+            <div className="flex-1">
+              <div className="text-sm font-medium">{ex.name}</div>
+              <div className="text-xs text-gray-400">
+                {ex.sets} sets
+                {ex.weight && ex.reps && ` • ${ex.weight}kg × ${ex.reps} reps`}
+                {ex.muscle && ` • ${ex.muscle}`}
+              </div>
             </div>
           </div>
         ))}
       </div>
+
+      {workout.notes && (
+        <div className="text-sm text-gray-400 mt-2">
+          <p>{workout.notes}</p>
+        </div>
+      )}
 
       <div className="flex justify-between text-white text-sm pt-2 border-t mt-3">
         <div
@@ -197,12 +228,12 @@ export default function WorkoutPost({ workout }: WorkoutPostProps) {
         <Share2 className="w-4 h-4 cursor-pointer hover:text-blue-500" onClick={() => alert("Share coming soon")} />
       </div>
 
-      <div className="mt-2 space-y-2">
+      <div className="space-y-2">
         <input
           value={newComment}
           onChange={(e) => setNewComment(e.target.value)}
           placeholder="Add a comment..."
-          className="w-full p-2 border rounded text-sm  bg-black/30"
+          className="w-full p-2 border rounded text-sm bg-black/30"
         />
         <button
           onClick={handleAddComment}

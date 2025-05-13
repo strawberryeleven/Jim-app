@@ -6,16 +6,34 @@ import { mapWorkoutLogToResponse } from '../utils/mappers';
 export class WorkoutLogController {
   static async getWorkoutLogs(req: Request, res: Response) {
     try {
-      const logs = await WorkoutLog.find({ user: (req as any).user.userId })
-        .populate('user', 'name email')
-        .populate('workout', 'name description')
-        .populate('exercises.exercise', 'name description')
+      const { page = 1, limit = 10, isPublic } = req.query;
+      const query: any = {};
+
+      // If requesting public logs, show all public logs
+      // Otherwise, show only user's logs
+      if (isPublic === 'true') {
+        query.isPublic = true;
+      } else {
+        query.userId = (req as any).user.userId;
+      }
+
+      const workoutLogs = await WorkoutLog.find(query)
+        .sort({ date: -1 })
+        .skip((Number(page) - 1) * Number(limit))
+        .limit(Number(limit))
         .lean();
-      const response: WorkoutLogResponse = {
+
+      const total = await WorkoutLog.countDocuments(query);
+
+      res.json({
         success: true,
-        logs: logs.map(mapWorkoutLogToResponse),
-      };
-      res.json(response);
+        workoutLogs,
+        pagination: {
+          total,
+          page: Number(page),
+          pages: Math.ceil(total / Number(limit))
+        }
+      });
     } catch (error) {
       throw error;
     }
@@ -52,23 +70,15 @@ export class WorkoutLogController {
 
   static async createWorkoutLog(req: Request, res: Response) {
     try {
-      const log = new WorkoutLog({
-        ...req.body,
-        user: (req as any).user.userId,
+      const workoutLog = await WorkoutLog.create({
+        userId: (req as any).user.userId,
+        ...req.body
       });
-      await log.save();
 
-      const populatedLog = await WorkoutLog.findById(log._id)
-        .populate('user', 'name email')
-        .populate('workout', 'name description')
-        .populate('exercises.exercise', 'name description')
-        .lean();
-
-      const response: WorkoutLogResponse = {
+      res.status(201).json({
         success: true,
-        log: mapWorkoutLogToResponse(populatedLog!),
-      };
-      res.status(201).json(response);
+        workoutLog
+      });
     } catch (error) {
       throw error;
     }
@@ -76,29 +86,25 @@ export class WorkoutLogController {
 
   static async updateWorkoutLog(req: Request, res: Response) {
     try {
-      const log = await WorkoutLog.findOneAndUpdate(
-        { _id: req.params.id, user: (req as any).user.userId },
+      const workoutLog = await WorkoutLog.findOneAndUpdate(
+        { _id: req.params.id, userId: (req as any).user.userId },
         { ...req.body, updatedAt: new Date() },
         { new: true }
-      )
-        .populate('user', 'name email')
-        .populate('workout', 'name description')
-        .populate('exercises.exercise', 'name description')
-        .lean();
-      if (!log) {
+      ).lean();
+
+      if (!workoutLog) {
         const response: ErrorResponse = {
           success: false,
-          error: 'Workout log not found or unauthorized',
-          code: 'WORKOUT_LOG_NOT_FOUND',
+          error: 'Workout log not found',
+          code: 'WORKOUT_LOG_NOT_FOUND'
         };
         return res.status(404).json(response);
       }
 
-      const response: WorkoutLogResponse = {
+      res.json({
         success: true,
-        log: mapWorkoutLogToResponse(log),
-      };
-      res.json(response);
+        workoutLog
+      });
     } catch (error) {
       throw error;
     }
@@ -106,24 +112,24 @@ export class WorkoutLogController {
 
   static async deleteWorkoutLog(req: Request, res: Response) {
     try {
-      const log = await WorkoutLog.findOneAndDelete({
+      const workoutLog = await WorkoutLog.findOneAndDelete({
         _id: req.params.id,
-        user: (req as any).user.userId,
+        userId: (req as any).user.userId
       });
-      if (!log) {
+
+      if (!workoutLog) {
         const response: ErrorResponse = {
           success: false,
-          error: 'Workout log not found or unauthorized',
-          code: 'WORKOUT_LOG_NOT_FOUND',
+          error: 'Workout log not found',
+          code: 'WORKOUT_LOG_NOT_FOUND'
         };
         return res.status(404).json(response);
       }
 
-      const response: WorkoutLogResponse = {
+      res.json({
         success: true,
-        message: 'Workout log deleted successfully',
-      };
-      res.json(response);
+        message: 'Workout log deleted successfully'
+      });
     } catch (error) {
       throw error;
     }
@@ -131,14 +137,16 @@ export class WorkoutLogController {
 
   static async getStats(req: Request, res: Response) {
     try {
-      const logs = await WorkoutLog.find({ user: (req as any).user.userId }).lean();
+      const logs = await WorkoutLog.find({ userId: (req as any).user.userId }).lean();
       if (!logs.length) {
         const response: WorkoutLogResponse = {
           success: true,
           stats: {
             totalWorkouts: 0,
             totalDuration: 0,
-            exercisesCompleted: 0,
+            totalVolume: 0,
+            totalSets: 0,
+            muscleGroups: {}
           },
         };
         return res.json(response);
@@ -146,17 +154,27 @@ export class WorkoutLogController {
 
       const stats = logs.reduce(
         (acc, log) => {
-          const exercisesCompleted = log.exercises.reduce(
-            (sum, ex) => sum + ex.sets.filter(set => set.completed).length,
-            0
-          );
           return {
             totalWorkouts: acc.totalWorkouts + 1,
             totalDuration: acc.totalDuration + log.duration,
-            exercisesCompleted: acc.exercisesCompleted + exercisesCompleted,
+            totalVolume: acc.totalVolume + Number(log.volume),
+            totalSets: acc.totalSets + log.totalSets,
+            muscleGroups: {
+              ...acc.muscleGroups,
+              ...Object.entries(log.muscleGroups).reduce((groups, [muscle, volume]) => ({
+                ...groups,
+                [muscle]: (acc.muscleGroups[muscle] || 0) + volume
+              }), {})
+            }
           };
         },
-        { totalWorkouts: 0, totalDuration: 0, exercisesCompleted: 0 }
+        { 
+          totalWorkouts: 0, 
+          totalDuration: 0, 
+          totalVolume: 0,
+          totalSets: 0,
+          muscleGroups: {} as Record<string, number>
+        }
       );
 
       const response: WorkoutLogResponse = {

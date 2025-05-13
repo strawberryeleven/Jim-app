@@ -24,6 +24,26 @@ export interface WorkoutStats {
   recentWorkouts: WorkoutLog[];
 }
 
+interface CreateWorkoutLogData {
+  title: string;
+  time: string;
+  volume: string;
+  date: string;
+  isPublic?: boolean;
+  notes?: string;
+  exercises: {
+    name: string;
+    sets: number;
+    image: string;
+    weight?: number;
+    reps?: number;
+    muscle?: string;
+  }[];
+  totalSets: number;
+  duration: number;
+  muscleGroups: Record<string, number>;
+}
+
 // Dummy API delay
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -139,11 +159,39 @@ class WorkoutLogService {
     return stats;
   }
 
-  async createWorkoutLog(logData: Omit<WorkoutLog, 'id' | 'userId' | 'createdAt' | 'updatedAt'>): Promise<WorkoutLog> {
+  async createWorkoutLog(logData: CreateWorkoutLogData): Promise<WorkoutLog> {
     try {
       const token = getToken();
       if (!token) {
         throw new Error('No token found');
+      }
+
+      // Log the request data for debugging
+      console.log('Sending workout log data:', JSON.stringify(logData, null, 2));
+
+      // Validate required fields
+      if (!logData.title || !logData.time || !logData.volume || !logData.date || 
+          !logData.exercises?.length || !logData.totalSets || !logData.duration || 
+          !logData.muscleGroups) {
+        console.error('Validation failed:', {
+          title: !!logData.title,
+          time: !!logData.time,
+          volume: !!logData.volume,
+          date: !!logData.date,
+          exercises: logData.exercises?.length,
+          totalSets: logData.totalSets,
+          duration: logData.duration,
+          muscleGroups: !!logData.muscleGroups
+        });
+        throw new Error('Missing required fields');
+      }
+
+      // Validate exercises
+      for (const exercise of logData.exercises) {
+        if (!exercise.name || !exercise.sets || !exercise.image) {
+          console.error('Invalid exercise:', exercise);
+          throw new Error('Invalid exercise data');
+        }
       }
 
       const response = await fetch(API_ENDPOINTS.workoutLogs.create, {
@@ -152,23 +200,38 @@ class WorkoutLogService {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(logData),
+        body: JSON.stringify({
+          ...logData,
+          isPublic: logData.isPublic ?? false,
+        }),
         credentials: 'include',
       });
 
+      // Log the response status and headers
+      console.log('Response status:', response.status);
+      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+
       if (!response.ok) {
-        await handleApiError(response);
+        const errorData = await response.json();
+        console.error('Server error response:', errorData);
+        throw new Error(errorData.message || 'Failed to create workout log');
       }
 
       const data = await response.json();
-      return data.log;
+      console.log('Server success response:', data);
+      
+      if (!data.success || !data.workoutLog) {
+        throw new Error('Invalid response from server');
+      }
+
+      return data.workoutLog;
     } catch (error) {
       console.error('Create workout log error:', error);
       throw error;
     }
   }
 
-  async getAllWorkoutLogs(page = 1, limit = 10): Promise<PaginatedResponse<WorkoutLog>> {
+  async getAllWorkoutLogs(page = 1, limit = 10, isPublic?: boolean): Promise<PaginatedResponse<WorkoutLog>> {
     try {
       const token = getToken();
       if (!token) {
@@ -179,6 +242,13 @@ class WorkoutLogService {
         page: page.toString(),
         limit: limit.toString(),
       });
+
+      // Add isPublic filter if provided
+      if (isPublic !== undefined) {
+        queryParams.append('isPublic', isPublic.toString());
+      }
+
+      console.log('Fetching workout logs with params:', Object.fromEntries(queryParams.entries()));
 
       const response = await fetch(`${API_ENDPOINTS.workoutLogs.getAll}?${queryParams}`, {
         headers: {
@@ -191,7 +261,18 @@ class WorkoutLogService {
         await handleApiError(response);
       }
 
-      return await response.json();
+      const data = await response.json();
+      console.log('Received workout logs response:', data);
+
+      if (!data.success || !Array.isArray(data.workoutLogs)) {
+        throw new Error('Invalid response format from server');
+      }
+
+      return {
+        success: data.success,
+        logs: data.workoutLogs,
+        pagination: data.pagination
+      };
     } catch (error) {
       console.error('Get workout logs error:', error);
       throw error;

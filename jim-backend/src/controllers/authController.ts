@@ -1,8 +1,8 @@
-
 import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import User from '../models/userModel';
+import Profile from '../models/profileModel';
 import { AuthResponse, ErrorResponse } from '../types';
 import { mapUserToResponse } from '../utils/mappers';
 
@@ -29,10 +29,16 @@ export class AuthController {
       });
       await user.save();
 
+      // Create profile for the new user
+      await Profile.create({
+        userId: user._id,
+        username: name,
+      });
+
       const accessToken = jwt.sign(
         { userId: user._id.toString(), email: user.email },
         process.env.JWT_SECRET!,
-        { expiresIn: '15m' }
+        { expiresIn: '24h' }
       );
       const refreshToken = jwt.sign(
         { userId: user._id.toString(), email: user.email },
@@ -128,7 +134,7 @@ export class AuthController {
       const accessToken = jwt.sign(
         { userId: user._id.toString(), email: user.email },
         process.env.JWT_SECRET!,
-        { expiresIn: '15m' }
+        { expiresIn: '24h' }
       );
       const refreshToken = jwt.sign(
         { userId: user._id.toString(), email: user.email },
@@ -208,7 +214,7 @@ export class AuthController {
       const accessToken = jwt.sign(
         { userId: user._id.toString(), email: user.email },
         process.env.JWT_SECRET!,
-        { expiresIn: '15m' }
+        { expiresIn: '24h' }
       );
 
       const response: AuthResponse = {

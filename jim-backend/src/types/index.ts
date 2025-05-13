@@ -119,26 +119,32 @@ export interface WorkoutLogResponse {
   success: boolean;
   log?: {
     id: string;
-    user: string;
-    workout: string;
+    userId: string;
+    title: string;
+    time: string;
+    volume: string;
     date: Date;
-    exercises: {
-      exercise: string;
-      sets: {
-        reps: number;
-        weight?: number;
-        duration?: number;
-        completed: boolean;
-      }[];
-    }[];
+    isPublic: boolean;
     notes?: string;
+    exercises: {
+      name: string;
+      sets: number;
+      image: string;
+      weight?: number;
+      reps?: number;
+      muscle?: string;
+    }[];
+    totalSets: number;
     duration: number;
+    muscleGroups: Record<string, number>;
   };
   logs?: any[];
   stats?: {
     totalWorkouts: number;
     totalDuration: number;
-    exercisesCompleted: number;
+    totalVolume: number;
+    totalSets: number;
+    muscleGroups: Record<string, number>;
   };
   pagination?: {
     total: number;
