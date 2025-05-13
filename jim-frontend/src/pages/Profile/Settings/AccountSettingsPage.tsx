@@ -2,93 +2,103 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft, ChevronRight, User, Mail, Lock, Trash2 } from "lucide-react";
+import { Button } from "@/components/buttons/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/dialogs/alert-dialog";
 
 export default function AccountSettingsPage() {
   const navigate = useNavigate();
-  const [showModal, setShowModal] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [accountDeleted, setAccountDeleted] = useState(false);
 
   const handleDeleteAccount = () => {
-    // Simulate delete logic here
-    setShowModal(false);
+    setShowDeleteDialog(false);
     setAccountDeleted(true);
 
-    // Optionally redirect after delay
     setTimeout(() => {
-      navigate("/login"); // Or navigate to home/login
+      navigate("/login");
     }, 3000);
   };
 
-  //no alert for delete
-  //do modal instead  
-
   return (
-    <div className="p-4 text-gray-400">
-      <div className="flex items-center space-x-3 mb-4">
-        <Link to="/settings">
-          <ArrowLeft className="w-5 h-5 text-white" />
-        </Link>
-        <h2 className="text-xl font-bold text-white">Account Settings</h2>
+    <div className="flex flex-col min-h-screen bg-black text-white">
+      <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex justify-between items-center mb-8">
+          <Button
+            variant="ghost"
+            onClick={() => navigate("/settings")}
+            className="text-gray-400 hover:text-white transition-colors"
+          >
+            <ArrowLeft className="h-6 w-6" />
+          </Button>
+          <h1 className="text-2xl font-bold text-blue-500">Account Settings</h1>
+          <div className="w-6" /> {/* Spacer for alignment */}
+        </div>
+
+        <div className="max-w-4xl mx-auto w-full space-y-8">
+          <Section title="Account Management">
+            <Link to="/change-username">
+              <SettingItem icon={<User />} label="Change Username" />
+            </Link>
+            <Link to="/change-email">
+              <SettingItem icon={<Mail />} label="Change Email" />
+            </Link>
+            <Link to="/update-password">
+              <SettingItem icon={<Lock />} label="Update Password" />
+            </Link>
+          </Section>
+
+          <Section title="Danger Zone">
+            <button
+              onClick={() => setShowDeleteDialog(true)}
+              className="w-full"
+            >
+              <SettingItem 
+                icon={<Trash2 className="text-red-500" />} 
+                label="Delete Account" 
+                className="text-red-500 hover:text-red-600"
+              />
+            </button>
+          </Section>
+        </div>
       </div>
 
-      <Section title="Account Management">
-        <Link to="/change-username">
-          <SettingItem icon={<User />} label="Change Username" />
-        </Link>
-        <Link to="/change-email">
-          <SettingItem icon={<Mail />} label="Change Email" />
-        </Link>
-        <Link to="/update-password">
-          <SettingItem icon={<Lock />} label="Update Password" />
-        </Link>
-      </Section>
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent className="bg-zinc-900 border-zinc-800 text-white">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-xl text-red-500">Delete Account</AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-400">
+              Are you sure you want to delete your account? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="mt-4">
+            <AlertDialogCancel className="bg-transparent border-2 border-zinc-700 text-white hover:bg-zinc-800 transition-colors">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 hover:bg-red-700 text-white transition-colors"
+              onClick={handleDeleteAccount}
+            >
+              Delete Account
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
-      <Section title="Danger Zone">
-        <button
-          onClick={() => setShowModal(true)}
-          className="w-full"
-        >
-          <SettingItem 
-            icon={<Trash2 className="text-red-500" />} 
-            label="Delete Account" 
-            className="text-red-500 hover:text-red-600"
-          />
-        </button>
-      </Section>
-
-      {/* Modal */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-gray-800 rounded-lg shadow-lg p-6 max-w-sm w-full text-white">
-            <h3 className="text-lg font-bold mb-4 text-red-500">
-              Confirm Account Deletion
-            </h3>
-            <p className="mb-4 text-gray-300">
-              Are you sure you want to delete your account? This action cannot
-              be undone.
-            </p>
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={() => setShowModal(false)}
-                className="px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-600"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleDeleteAccount}
-                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-              >
-                Confirm Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
+      {/* Account Deleted Dialog */}
       {accountDeleted && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-gray-800 rounded-lg shadow-lg p-6 max-w-sm w-full text-white">
-            <p className="text-center text-gray-300">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-lg shadow-lg p-6 max-w-sm w-full text-white">
+            <p className="text-center text-gray-400">
               Account deleted successfully. Redirecting to login...
             </p>
           </div>
@@ -106,8 +116,8 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <div className="mb-6">
-      <h3 className="text-gray-500 uppercase text-md font-semibold mb-2">
+    <div>
+      <h3 className="text-blue-400 uppercase text-sm font-semibold mb-4">
         {title}
       </h3>
       <div className="space-y-2">{children}</div>
@@ -125,10 +135,10 @@ function SettingItem({
   className?: string;
 }) {
   return (
-    <div className={`flex items-center justify-between p-2 rounded-md hover:bg-gray-700 cursor-pointer ${className}`}>
+    <div className={`flex items-center justify-between p-4 bg-zinc-900 rounded-lg hover:bg-zinc-800 transition-colors cursor-pointer ${className}`}>
       <div className="flex items-center space-x-3">
         <span className="text-gray-400">{icon}</span>
-        <span>{label}</span>
+        <span className="text-white">{label}</span>
       </div>
       <ChevronRight className="text-gray-400" />
     </div>

@@ -36,6 +36,7 @@ import Calendar from "./pages/Profile/Calendar";
 import WorkoutDetailPage from "./pages/WorkoutDetailPage";
 import ViewRoutine from "./pages/Workout/Routine/ViewRoutine";
 import RoutineDetail from "@/pages/Workout/Routine/RoutineDetail";
+import { Discover } from "./pages/Discover";
 
 const queryClient = new QueryClient();
 
@@ -80,6 +81,7 @@ const AppContent = () => {
           <Route path="/calendar/:date" element={<WorkoutDetailPage />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/routine/:id" element={<RoutineDetail />} />
+          <Route path="/discover" element={<Discover />} />
         </Route>
 
         {/* 404 Route */}

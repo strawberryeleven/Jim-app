@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import WorkoutLog from '../models/workoutLogModel';
 import { ErrorResponse, WorkoutLogResponse } from '../types';
 import { mapWorkoutLogToResponse } from '../utils/mappers';
+import User from '../models/userModel';
 
 export class WorkoutLogController {
   static async getWorkoutLogs(req: Request, res: Response) {
@@ -208,6 +209,68 @@ export class WorkoutLogController {
       const response: WorkoutLogResponse = {
         success: true,
         logs: logs.map(mapWorkoutLogToResponse),
+        pagination: {
+          total,
+          page,
+          pages: Math.ceil(total / limit)
+        }
+      };
+      res.json(response);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  static async getFollowedUsersWorkoutLogs(req: Request, res: Response) {
+    try {
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+      const skip = (page - 1) * limit;
+
+      // Get the current user's following list
+      const currentUser = await User.findById((req as any).user.userId);
+      if (!currentUser) {
+        const response: ErrorResponse = {
+          success: false,
+          error: 'User not found',
+          code: 'USER_NOT_FOUND',
+        };
+        return res.status(404).json(response);
+      }
+
+      // Get workout logs from followed users that are public
+      const logs = await WorkoutLog.find({
+        userId: { $in: currentUser.following },
+        isPublic: true
+      })
+        .sort({ date: -1 })
+        .skip(skip)
+        .limit(limit)
+        .populate('userId', 'name email')
+        .lean();
+
+      const total = await WorkoutLog.countDocuments({
+        userId: { $in: currentUser.following },
+        isPublic: true
+      });
+
+      const response: WorkoutLogResponse = {
+        success: true,
+        logs: logs.map(log => ({
+          id: log._id.toString(),
+          userId: log.userId._id.toString(),
+          userName: (log.userId as any).name,
+          title: log.title,
+          time: log.time,
+          volume: log.volume,
+          date: new Date(log.date),
+          isPublic: log.isPublic,
+          notes: log.notes,
+          exercises: log.exercises,
+          totalSets: log.totalSets,
+          duration: log.duration,
+          muscleGroups: log.muscleGroups
+        })),
         pagination: {
           total,
           page,

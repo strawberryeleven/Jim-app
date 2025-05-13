@@ -12,6 +12,9 @@ router.use(authenticateToken);
 // Get all workout logs (with pagination and public filter)
 router.get('/', generalRateLimiter, WorkoutLogController.getWorkoutLogs);
 
+// Get followed users' workout logs
+router.get('/followed', generalRateLimiter, WorkoutLogController.getFollowedUsersWorkoutLogs);
+
 // Create a new workout log
 router.post('/', generalRateLimiter, validateWorkoutLog, WorkoutLogController.createWorkoutLog);
 

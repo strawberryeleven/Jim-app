@@ -46,9 +46,15 @@ export interface UsersResponse {
     email: string;
     profileImage?: string;
     bio?: string;
+    username: string;
     followers: string[];
     following: string[];
   }[];
+  pagination?: {
+    total: number;
+    page: number;
+    pages: number;
+  };
   message?: string;
 }
 

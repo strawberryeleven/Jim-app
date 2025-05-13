@@ -105,118 +105,134 @@ const EditRoutine = () => {
 
   if (routineNotFound) {
     return (
-      <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-4">
-        <h2 className="text-2xl font-bold mb-4">Routine Not Found</h2>
-        <p className="text-gray-400 mb-6">
-          The routine you're trying to edit doesn't exist.
-        </p>
-        <Button
-          onClick={() => navigate("/workout")}
-          className="bg-blue-500 hover:bg-blue-600"
-        >
-          Back to Workouts
-        </Button>
+      <div className="flex flex-col min-h-screen bg-black text-white">
+        <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold mb-4">Routine Not Found</h2>
+            <p className="text-gray-400 mb-6">
+              The routine you're trying to edit doesn't exist.
+            </p>
+            <Button
+              onClick={() => navigate("/workout")}
+              className="bg-blue-500 hover:bg-blue-600 transition-colors"
+            >
+              Back to Workouts
+            </Button>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-black text-white">
-      {/* Header */}
-      <div className="flex justify-between items-center p-4 border-b border-gray-800">
-        <Button
-          variant="link"
-          className="text-blue-500 p-0 h-auto text-lg"
-          onClick={handleCancel}
-        >
-          Cancel
-        </Button>
-        <h1 className="text-xl font-medium">Edit Routine</h1>
-        <Button
-          className="bg-blue-500 hover:bg-blue-600 text-white font-semibold"
-          onClick={handleSave}
-        >
-          Save
-        </Button>
-      </div>
+    <div className="flex flex-col min-h-screen bg-black text-white">
+      <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex justify-between items-center mb-8">
+          <Button
+            variant="ghost"
+            className="text-gray-400 hover:text-white transition-colors"
+            onClick={handleCancel}
+          >
+            Cancel
+          </Button>
+          <h1 className="text-2xl font-bold text-blue-500">Edit Routine</h1>
+          <Button
+            className="bg-blue-500 hover:bg-blue-600 transition-colors"
+            onClick={handleSave}
+          >
+            Save
+          </Button>
+        </div>
 
-      {/* Title input */}
-      <div className="p-4">
-        <Input
-          placeholder="Routine title"
-          value={routineTitle}
-          onChange={(e) => dispatch(updateRoutineTitle(e.target.value))}
-          className="bg-transparent border-b border-gray-700 rounded-none px-0 text-xl font-medium focus-visible:ring-0 focus-visible:border-gray-500"
-        />
-      </div>
-
-      {/* Routine comment input */}
-      <div className="p-4">
-        <Textarea
-          placeholder="Add comments about your routine (optional)"
-          value={routineComment}
-          onChange={(e) => dispatch(updateRoutineComment(e.target.value))}
-          className="bg-transparent border-b border-gray-700 rounded-none px-0 text-lg focus-visible:ring-0 focus-visible:border-gray-500"
-        />
-      </div>
-
-      {/* Exercises list */}
-      <div className="px-4 mt-4 space-y-8">
-        {selectedExercises.length > 0 ? (
-          selectedExercises.map((exercise, index) => (
-            <ExerciseCard2
-              key={exercise.name}
-              exercise={exercise}
-              index={index}
-              addSetToExercise={(arg) => dispatch(addSetToExercise(arg))}
-              updateSetValue={(arg) => dispatch(updateSetValue(arg))}
-              removeSetFromExercise={(_, setIndex) =>
-                dispatch(removeSetFromExercise({ name: exercise.name, setIndex }))
-              }
-              removeExercise={(name) => dispatch(removeExercise(name))}
+        <div className="max-w-4xl mx-auto w-full space-y-8">
+          {/* Title input */}
+          <div>
+            <Input
+              placeholder="Routine title"
+              value={routineTitle}
+              onChange={(e) => dispatch(updateRoutineTitle(e.target.value))}
+              className="bg-transparent border-b border-zinc-700 rounded-none px-0 text-xl font-medium focus-visible:ring-0 focus-visible:border-zinc-500"
             />
-          ))
-        ) : (
-          <div className="flex flex-col items-center justify-center mt-12 px-6 text-center">
-            <div className="text-gray-500 text-5xl mb-6">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="64"
-                height="64"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M6.5 6.5h11" />
-                <path d="M20 15V9c0-.6-.4-1-1-1h-2a1 1 0 0 0-1 1v6c0 .6.4 1 1 1h2c.6 0 1-.4 1-1Z" />
-                <path d="M4 15V9c0-.6.4-1 1-1h2c.6 0 1 .4 1 1v6c0 .6-.4 1-1 1H5c-.6 0-1-.4-1-1Z" />
-                <path d="M8 9h8" />
-                <path d="M8 15h8" />
-              </svg>
-            </div>
-            <p className="text-gray-500 text-lg">
-              Get started by adding an exercise to your routine.
-            </p>
           </div>
-        )}
+
+          {/* Routine comment input */}
+          <div>
+            <Textarea
+              placeholder="Add comments about your routine (optional)"
+              value={routineComment}
+              onChange={(e) => dispatch(updateRoutineComment(e.target.value))}
+              className="bg-transparent border-b border-zinc-700 rounded-none px-0 text-lg focus-visible:ring-0 focus-visible:border-zinc-500"
+            />
+          </div>
+
+          {/* Exercises list */}
+          <div className="space-y-8">
+            {selectedExercises.length > 0 ? (
+              selectedExercises.map((exercise, index) => (
+                <ExerciseCard2
+                  key={exercise.name}
+                  exercise={{
+                    ...exercise,
+                    sets: exercise.sets.map(set => ({
+                      weight: Number(set.weight) || 0,
+                      reps: Number(set.reps) || 0,
+                      isCompleted: set.isCompleted
+                    }))
+                  }}
+                  index={index}
+                  addSetToExercise={(arg) => dispatch(addSetToExercise(arg))}
+                  updateSetValue={(arg) => dispatch(updateSetValue(arg))}
+                  removeSetFromExercise={(_, setIndex) =>
+                    dispatch(removeSetFromExercise({ name: exercise.name, setIndex }))
+                  }
+                  removeExercise={(name) => dispatch(removeExercise(name))}
+                />
+              ))
+            ) : (
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <div className="text-gray-500 text-5xl mb-6">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="64"
+                    height="64"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M6.5 6.5h11" />
+                    <path d="M20 15V9c0-.6-.4-1-1-1h-2a1 1 0 0 0-1 1v6c0 .6.4 1 1 1h2c.6 0 1-.4 1-1Z" />
+                    <path d="M4 15V9c0-.6.4-1 1-1h2c.6 0 1 .4 1 1v6c0 .6-.4 1-1 1H5c-.6 0-1-.4-1-1Z" />
+                    <path d="M8 9h8" />
+                    <path d="M8 15h8" />
+                  </svg>
+                </div>
+                <p className="text-gray-500 text-lg">
+                  Get started by adding an exercise to your routine.
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Add Exercise Button */}
       <div className="fixed bottom-20 left-0 right-0 px-6">
-        <Button
-          className="w-full bg-blue-500 hover:bg-blue-600 text-white py-6 text-lg font-medium rounded-xl"
-          onClick={addSelectedExercises}
-        >
-          <Plus className="mr-2" size={24} /> Add exercise
-        </Button>
+        <div className="max-w-4xl mx-auto">
+          <Button
+            className="w-full bg-blue-500 hover:bg-blue-600 text-white py-6 text-lg font-medium rounded-xl transition-colors"
+            onClick={addSelectedExercises}
+          >
+            <Plus className="mr-2" size={24} /> Add exercise
+          </Button>
+        </div>
       </div>
 
       {/* Cancel Confirmation Dialog */}
       <AlertDialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
-        <AlertDialogContent className="bg-zinc-900 border-gray-800 text-white">
+        <AlertDialogContent className="bg-zinc-900 border-zinc-800 text-white">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-xl">Discard Changes?</AlertDialogTitle>
             <AlertDialogDescription className="text-gray-400">
@@ -224,11 +240,11 @@ const EditRoutine = () => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="mt-4">
-            <AlertDialogCancel className="bg-transparent border-2 border-gray-600 text-white hover:bg-transparent">
+            <AlertDialogCancel className="bg-transparent border-2 border-zinc-700 text-white hover:bg-zinc-800 transition-colors">
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
-              className="bg-red-600 hover:bg-red-700 text-white"
+              className="bg-red-600 hover:bg-red-700 text-white transition-colors"
               onClick={confirmDiscard}
             >
               Discard
@@ -239,7 +255,7 @@ const EditRoutine = () => {
 
       {/* Missing Title Warning Dialog */}
       <AlertDialog open={showMissingTitleDialog} onOpenChange={setShowMissingTitleDialog}>
-        <AlertDialogContent className="bg-zinc-900 border-gray-800 text-white">
+        <AlertDialogContent className="bg-zinc-900 border-zinc-800 text-white">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-xl">Missing Title</AlertDialogTitle>
             <AlertDialogDescription className="text-gray-400">
@@ -248,10 +264,10 @@ const EditRoutine = () => {
           </AlertDialogHeader>
           <AlertDialogFooter className="mt-4">
             <AlertDialogAction
-              className="bg-blue-500 hover:bg-blue-600 text-white"
+              className="bg-blue-500 hover:bg-blue-600 text-white transition-colors"
               onClick={() => setShowMissingTitleDialog(false)}
             >
-              Got it!
+              OK
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

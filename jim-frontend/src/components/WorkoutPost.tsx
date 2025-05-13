@@ -21,6 +21,8 @@ interface Comment {
 
 interface Workout {
   id: string;
+  userId?: string;
+  userName?: string;
   title: string;
   time: string;
   volume: string;
@@ -165,7 +167,7 @@ export default function WorkoutPost({ workout }: WorkoutPostProps) {
       <div className="flex items-center space-x-3">
         <UserCircle className="w-8 h-8" />
         <div>
-          <div className="font-semibold">raffat2</div>
+          <div className="font-semibold">{workout.userName}</div>
           <div className="text-xs">{new Date(workout.date).toLocaleDateString()}</div>
         </div>
       </div>

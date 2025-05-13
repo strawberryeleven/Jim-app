@@ -4,6 +4,8 @@ import { handleApiError } from '../utils/error';
 import { PaginatedResponse } from '../types/api';
 import { WorkoutLog } from '../types/workout';
 import { Workout } from './workoutService';
+import axios from 'axios';
+import { API_BASE_URL } from '@/config/api';
 
 export interface WorkoutLogExercise {
   exerciseId: string;
@@ -109,6 +111,15 @@ const dummyLogs: Record<string, WorkoutLog[]> = {
       }
     }
   ]
+};
+
+const getAuthHeaders = () => {
+  const token = localStorage.getItem('token');
+  return {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
 };
 
 class WorkoutLogService {
@@ -380,6 +391,34 @@ class WorkoutLogService {
       return data.logs;
     } catch (error) {
       console.error('Get user workout logs error:', error);
+      throw error;
+    }
+  }
+
+  async getFollowedWorkoutLogs(page: number = 1, limit: number = 10): Promise<PaginatedResponse<WorkoutLog>> {
+    try {
+      console.log('Making API call to get followed workout logs...');
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: limit.toString(),
+      });
+      
+      const response = await axios.get<PaginatedResponse<WorkoutLog>>(
+        `${API_BASE_URL}/workout-logs/followed?${params}`,
+        getAuthHeaders()
+      );
+      
+      console.log('API Response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching followed workout logs:', error);
+      if (axios.isAxiosError(error)) {
+        console.error('Axios error details:', {
+          status: error.response?.status,
+          data: error.response?.data,
+          headers: error.response?.headers
+        });
+      }
       throw error;
     }
   }

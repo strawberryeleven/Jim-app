@@ -4,6 +4,7 @@ import { useLocation, Link, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState, AppDispatch } from "@/store/store";
 import { updateProfileAsync } from "@/store/slices/profileSlice";
+import { Button } from "@/components/buttons/button";
 
 const EditProfile = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -82,144 +83,153 @@ const EditProfile = () => {
   };
 
   return (
-    <div className="p-4">
-      <div className="flex justify-between items-center mb-4">
-        <Link to={`/${from}`}>
-          <ArrowLeft className="w-5 h-5 mr-3 text-white" />
-        </Link>
-        <h1 className="text-xl font-bold text-white">Edit Profile</h1>
-
-        <button
-          className={`${isDirty ? "text-blue-500" : "text-gray-400"} ${updateStatus === 'loading' ? 'opacity-50 cursor-not-allowed' : ''}`}
-          disabled={!isDirty || updateStatus === 'loading'}
-          onClick={handleSave}
-        >
-          {updateStatus === 'loading' ? 'Saving...' : 'Save'}
-        </button>
-      </div>
-
-      {showSuccess && (
-        <div className="mb-4 text-green-600 font-medium">
-          Profile updated successfully!
-        </div>
-      )}
-
-      {error && (
-        <div className="mb-4 text-red-600 font-medium">
-          {error}
-        </div>
-      )}
-
-      <div className="flex flex-col items-center mb-4">
-        <div className="w-20 h-20 rounded-full overflow-hidden flex items-center justify-center text-white text-2xl mb-2 bg-pink-500">
-          {image ? (
-            <img
-              src={URL.createObjectURL(image)}
-              alt="Profile"
-              className="w-full h-full object-cover"
-            />
-          ) : profile?.profilePicture ? (
-            <img
-              src={profile.profilePicture}
-              alt="Profile"
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            name.trim().charAt(0).toUpperCase() || "?"
-          )}
-        </div>
-        <button
-          className="text-blue-500 text-sm"
-          onClick={() => setShowImageOptions((prev) => !prev)}
-        >
-          Change Picture
-        </button>
-        {showImageOptions && (
-          <div className="mt-2 border rounded bg-white shadow-md text-sm w-40 z-10 absolute">
-            <button
-              onClick={() => {
-                fileInputRef.current?.click();
-                setShowImageOptions(false);
-              }}
-              className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-            >
-              Choose from Library
-            </button>
-            {image && (
-              <button
-                onClick={() => {
-                  setImage(null);
-                  setShowImageOptions(false);
-                }}
-                className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-red-500"
-              >
-                Delete Picture
-              </button>
-            )}
-          </div>
-        )}
-        <input
-          type="file"
-          accept="image/*"
-          ref={fileInputRef}
-          className="hidden"
-          onChange={handleImageChange}
-        />
-      </div>
-
-      <div className="space-y-4">
-        <div>
-          <label className="text-md font-semibold text-white">Name</label>
-          <input
-            className="block w-full border rounded px-2 py-1 mt-1"
-            placeholder="Your full name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
-        </div>
-
-        <div>
-          <label className="text-md font-semibold text-white">Bio</label>
-          <input
-            className="block w-full border rounded px-2 py-1 mt-1"
-            placeholder="Describe yourself"
-            value={bio}
-            onChange={(e) => setBio(e.target.value)}
-          />
-        </div>
-
-        <div>
-          <label className="text-md font-semibold text-white">Link</label>
-          <input
-            className="block w-full border rounded px-2 py-1 mt-1"
-            placeholder="https://example.com"
-            value={link}
-            onChange={(e) => setLink(e.target.value)}
-          />
-        </div>
-
-        <div>
-          <label className="text-md font-semibold text-white">Sex</label>
-          <select
-            className="block w-full border rounded px-2 py-1 mt-1"
-            value={sex}
-            onChange={(e) => setSex(e.target.value)}
+    <div className="flex flex-col min-h-screen bg-black text-white">
+      <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex justify-between items-center mb-8">
+          <Button
+            variant="ghost"
+            onClick={() => navigate(`/${from}`)}
+            className="text-gray-400 hover:text-white transition-colors"
           >
-            <option value="">Select</option>
-            <option value="male">Male</option>
-            <option value="female">Female</option>
-            <option value="other">Other</option>
-          </select>
+            <ArrowLeft className="h-6 w-6" />
+          </Button>
+          <h1 className="text-2xl font-bold text-blue-500">Edit Profile</h1>
+          <Button
+            variant="ghost"
+            className={`${isDirty ? "text-blue-500 hover:text-blue-600" : "text-gray-400"} ${updateStatus === 'loading' ? 'opacity-50 cursor-not-allowed' : ''}`}
+            disabled={!isDirty || updateStatus === 'loading'}
+            onClick={handleSave}
+          >
+            {updateStatus === 'loading' ? 'Saving...' : 'Save'}
+          </Button>
         </div>
 
-        <div>
-          <label className="text-md font-semibold text-white">Birthday</label>
-          <input
-            type="date"
-            className="block w-full border rounded px-2 py-1 mt-1"
-            value={birthday}
-            onChange={(e) => setBirthday(e.target.value)}
-          />
+        <div className="max-w-4xl mx-auto w-full space-y-8">
+          {showSuccess && (
+            <div className="p-4 bg-green-500/10 border border-green-500/20 rounded-lg text-green-500 font-medium">
+              Profile updated successfully!
+            </div>
+          )}
+
+          {error && (
+            <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-500 font-medium">
+              {error}
+            </div>
+          )}
+
+          <div className="flex flex-col items-center">
+            <div className="w-32 h-32 rounded-full overflow-hidden flex items-center justify-center text-white text-4xl mb-4 bg-zinc-900 ring-4 ring-zinc-800">
+              {image ? (
+                <img
+                  src={URL.createObjectURL(image)}
+                  alt="Profile"
+                  className="w-full h-full object-cover"
+                />
+              ) : profile?.profilePicture ? (
+                <img
+                  src={profile.profilePicture}
+                  alt="Profile"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                name.trim().charAt(0).toUpperCase() || "?"
+              )}
+            </div>
+            <Button
+              variant="ghost"
+              className="text-blue-500 hover:text-blue-600 transition-colors"
+              onClick={() => setShowImageOptions((prev) => !prev)}
+            >
+              Change Picture
+            </Button>
+            {showImageOptions && (
+              <div className="mt-2 bg-zinc-900 border border-zinc-800 rounded-lg shadow-lg text-sm w-48 z-10 absolute">
+                <button
+                  onClick={() => {
+                    fileInputRef.current?.click();
+                    setShowImageOptions(false);
+                  }}
+                  className="block w-full text-left px-4 py-3 text-white hover:bg-zinc-800 transition-colors"
+                >
+                  Choose from Library
+                </button>
+                {image && (
+                  <button
+                    onClick={() => {
+                      setImage(null);
+                      setShowImageOptions(false);
+                    }}
+                    className="block w-full text-left px-4 py-3 text-red-500 hover:bg-zinc-800 transition-colors"
+                  >
+                    Delete Picture
+                  </button>
+                )}
+              </div>
+            )}
+            <input
+              type="file"
+              accept="image/*"
+              ref={fileInputRef}
+              className="hidden"
+              onChange={handleImageChange}
+            />
+          </div>
+
+          <div className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-400 mb-2">Name</label>
+              <input
+                className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-2 text-white placeholder:text-gray-500 focus:border-zinc-700 transition-colors"
+                placeholder="Your full name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-400 mb-2">Bio</label>
+              <input
+                className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-2 text-white placeholder:text-gray-500 focus:border-zinc-700 transition-colors"
+                placeholder="Describe yourself"
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-400 mb-2">Link</label>
+              <input
+                className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-2 text-white placeholder:text-gray-500 focus:border-zinc-700 transition-colors"
+                placeholder="https://example.com"
+                value={link}
+                onChange={(e) => setLink(e.target.value)}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-400 mb-2">Sex</label>
+              <select
+                className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-2 text-white focus:border-zinc-700 transition-colors"
+                value={sex}
+                onChange={(e) => setSex(e.target.value)}
+              >
+                <option value="">Select</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-400 mb-2">Birthday</label>
+              <input
+                type="date"
+                className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-2 text-white focus:border-zinc-700 transition-colors"
+                value={birthday}
+                onChange={(e) => setBirthday(e.target.value)}
+              />
+            </div>
+          </div>
         </div>
       </div>
     </div>

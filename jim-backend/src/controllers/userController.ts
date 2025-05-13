@@ -151,7 +151,10 @@ export class UserController {
 
       const response: UsersResponse = {
         success: true,
-        users: user.followers.map((f: any) => mapUserToResponse(f)),
+        users: user.followers.map((f: any) => ({
+          ...mapUserToResponse(f),
+          username: f.name
+        }))
       };
       res.json(response);
     } catch (error) {
@@ -173,7 +176,10 @@ export class UserController {
 
       const response: UsersResponse = {
         success: true,
-        users: user.following.map((f: any) => mapUserToResponse(f)),
+        users: user.following.map((f: any) => ({
+          ...mapUserToResponse(f),
+          username: f.name
+        }))
       };
       res.json(response);
     } catch (error) {
@@ -280,6 +286,44 @@ export class UserController {
       const response: UserResponse = {
         success: true,
         message: 'Password updated successfully',
+      };
+      res.json(response);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  static async getAllUsers(req: Request, res: Response) {
+    try {
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+      const skip = (page - 1) * limit;
+
+      const users = await User.find()
+        .select('name email profileImage bio followers following')
+        .skip(skip)
+        .limit(limit)
+        .lean();
+
+      const total = await User.countDocuments();
+
+      const response: UsersResponse = {
+        success: true,
+        users: users.map(user => ({
+          id: user._id.toString(),
+          name: user.name,
+          email: user.email,
+          profileImage: user.profileImage,
+          bio: user.bio,
+          username: user.name,
+          followers: (user.followers || []).map((f: any) => f.toString()),
+          following: (user.following || []).map((f: any) => f.toString())
+        })),
+        pagination: {
+          total,
+          page,
+          pages: Math.ceil(total / limit)
+        }
       };
       res.json(response);
     } catch (error) {

@@ -20,4 +20,6 @@ router.delete('/:id/follow', authenticateToken, generalRateLimiter, UserControll
 router.get('/:id/followers', generalRateLimiter, UserController.getFollowers);
 router.get('/:id/following', generalRateLimiter, UserController.getFollowing);
 
+router.get('/', authenticateToken, generalRateLimiter, UserController.getAllUsers);
+
 export default router;
