@@ -105,117 +105,137 @@ const Workout = () => {
   };
 
   return (
-    <div className="p-4 space-y-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-white">Workout</h1>
-        <span className="text-yellow-500 font-semibold">PRO</span>
+    <div className="flex flex-col min-h-screen bg-gradient-to-br from-zinc-900 via-zinc-800 to-blue-900 text-white relative overflow-hidden">
+      {/* Abstract Background Forms */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-900/20 rounded-full blur-3xl"></div>
+        <div className="absolute top-1/2 -left-20 w-60 h-60 bg-zinc-800/30 rounded-full blur-3xl"></div>
+        <div className="absolute -bottom-20 right-1/4 w-72 h-72 bg-blue-800/20 rounded-full blur-3xl"></div>
       </div>
 
-      <section>
-        <h2 className="text-xl font-semibold text-white mb-4">Quick Start</h2>
-        <Button
-          variant="outline"
-          className="w-full bg-white text-black hover:bg-gray-200 transition-colors duration-200"
-          onClick={() => navigate("/log-workout")}
-        >
-          + Start Empty Workout
-        </Button>
-      </section>
-
-      <section>
-        <h2 className="text-xl font-semibold text-white mb-4">Routines</h2>
-        <div className="grid grid-cols-2 gap-4">
-          <Card
-            className="p-6 bg-black/40 hover:bg-black/50 transition-colors cursor-pointer"
-            onClick={() => navigate("/create-routine")}
-          >
-            <h3 className="text-lg font-semibold text-white">New Routine</h3>
-          </Card>
-          <Card
-            className="p-6 bg-black/40 hover:bg-black/50 transition-colors cursor-pointer"
-            onClick={() => navigate("/routines")}
-          >
-            <h3 className="text-lg font-semibold text-white">Explore Routines</h3>
-          </Card>
+      <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 relative">
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-2xl font-bold text-blue-400">Workout</h1>
+          <span className="text-yellow-500 font-semibold">PRO</span>
         </div>
-      </section>
 
-      <Button
-        variant="secondary"
-        className="w-full"
-        onClick={() => navigate("/getting-started")}
-      >
-        How to get started
-      </Button>
+        <div className="max-w-4xl mx-auto w-full space-y-8">
+          <section>
+            <h2 className="text-xl font-semibold text-white mb-4">Quick Start</h2>
+            <Button
+              variant="outline"
+              className="w-full bg-white/5 backdrop-blur-sm text-white hover:bg-white/10 transition-colors duration-200 border-white/10"
+              onClick={() => navigate("/log-workout")}
+            >
+              <Plus className="w-5 h-5 mr-2" />
+              Start Empty Workout
+            </Button>
+          </section>
 
-      {/* Routines Section */}
-      <section className="mt-8">
-        <Tabs defaultValue="my-routines" className="w-full" onValueChange={handleTabChange}>
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="my-routines">My Routines</TabsTrigger>
-            <TabsTrigger value="public-routines">Public Routines</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="my-routines">
-            {loading ? (
-              <div className="text-center py-6 text-gray-500">Loading routines...</div>
-            ) : error ? (
-              <div className="text-center py-6 text-red-500">{error}</div>
-            ) : myRoutines.length > 0 ? (
-              <div className="space-y-4">
-                {myRoutines.map((routine) => (
-                  <RoutineCard key={routine.id} routine={routine} />
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-6 text-gray-500">
-                No routines yet. Create your first one!
-              </div>
-            )}
-          </TabsContent>
-
-          <TabsContent value="public-routines">
-            {loading ? (
-              <div className="text-center py-6 text-gray-500">Loading routines...</div>
-            ) : error ? (
-              <div className="text-center py-6 text-red-500">{error}</div>
-            ) : publicRoutines.length > 0 ? (
-              <>
-                <div className="space-y-4">
-                  {publicRoutines.map((routine) => (
-                    <RoutineCard key={routine.id} routine={routine} />
-                  ))}
+          <section>
+            <h2 className="text-xl font-semibold text-white mb-4">Routines</h2>
+            <div className="grid grid-cols-2 gap-4">
+              <Card
+                className="p-6 bg-white/5 backdrop-blur-sm hover:bg-white/10 transition-colors cursor-pointer border-white/10"
+                onClick={() => navigate("/create-routine")}
+              >
+                <div className="flex items-center space-x-3">
+                  <Plus className="w-5 h-5 text-blue-400" />
+                  <h3 className="text-lg font-semibold text-white">New Routine</h3>
                 </div>
-                {pagination.pages > 1 && (
-                  <div className="flex justify-center gap-2 mt-4">
-                    <Button
-                      variant="outline"
-                      onClick={() => handlePageChange(pagination.page - 1)}
-                      disabled={pagination.page === 1}
-                    >
-                      Previous
-                    </Button>
-                    <span className="py-2 px-4">
-                      Page {pagination.page} of {pagination.pages}
-                    </span>
-                    <Button
-                      variant="outline"
-                      onClick={() => handlePageChange(pagination.page + 1)}
-                      disabled={pagination.page === pagination.pages}
-                    >
-                      Next
-                    </Button>
+              </Card>
+              <Card
+                className="p-6 bg-white/5 backdrop-blur-sm hover:bg-white/10 transition-colors cursor-pointer border-white/10"
+                onClick={() => navigate("/routines")}
+              >
+                <div className="flex items-center space-x-3">
+                  <Search className="w-5 h-5 text-blue-400" />
+                  <h3 className="text-lg font-semibold text-white">Explore Routines</h3>
+                </div>
+              </Card>
+            </div>
+          </section>
+
+          <Button
+            variant="secondary"
+            className="w-full bg-white/5 backdrop-blur-sm text-white hover:bg-white/10 transition-colors border-white/10"
+            onClick={() => navigate("/getting-started")}
+          >
+            How to get started
+          </Button>
+
+          {/* Routines Section */}
+          <section className="mt-8">
+            <Tabs defaultValue="my-routines" className="w-full" onValueChange={handleTabChange}>
+              <TabsList className="grid w-full grid-cols-2 bg-white/5 backdrop-blur-sm border-white/10">
+                <TabsTrigger value="my-routines" className="data-[state=active]:bg-white/10">My Routines</TabsTrigger>
+                <TabsTrigger value="public-routines" className="data-[state=active]:bg-white/10">Public Routines</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="my-routines" className="mt-4">
+                {loading ? (
+                  <div className="text-center py-6 text-gray-400">Loading routines...</div>
+                ) : error ? (
+                  <div className="text-center py-6 text-red-400">{error}</div>
+                ) : myRoutines.length > 0 ? (
+                  <div className="space-y-4">
+                    {myRoutines.map((routine) => (
+                      <RoutineCard key={routine.id} routine={routine} />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-6 text-gray-400">
+                    No routines yet. Create your first one!
                   </div>
                 )}
-              </>
-            ) : (
-              <div className="text-center py-6 text-gray-500">
-                No public routines available.
-              </div>
-            )}
-          </TabsContent>
-        </Tabs>
-      </section>
+              </TabsContent>
+
+              <TabsContent value="public-routines" className="mt-4">
+                {loading ? (
+                  <div className="text-center py-6 text-gray-400">Loading routines...</div>
+                ) : error ? (
+                  <div className="text-center py-6 text-red-400">{error}</div>
+                ) : publicRoutines.length > 0 ? (
+                  <>
+                    <div className="space-y-4">
+                      {publicRoutines.map((routine) => (
+                        <RoutineCard key={routine.id} routine={routine} />
+                      ))}
+                    </div>
+                    {pagination.pages > 1 && (
+                      <div className="flex justify-center gap-2 mt-4">
+                        <Button
+                          variant="outline"
+                          onClick={() => handlePageChange(pagination.page - 1)}
+                          disabled={pagination.page === 1}
+                          className="bg-white/5 backdrop-blur-sm text-white hover:bg-white/10 transition-colors border-white/10"
+                        >
+                          Previous
+                        </Button>
+                        <span className="py-2 px-4 text-gray-400">
+                          Page {pagination.page} of {pagination.pages}
+                        </span>
+                        <Button
+                          variant="outline"
+                          onClick={() => handlePageChange(pagination.page + 1)}
+                          disabled={pagination.page === pagination.pages}
+                          className="bg-white/5 backdrop-blur-sm text-white hover:bg-white/10 transition-colors border-white/10"
+                        >
+                          Next
+                        </Button>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="text-center py-6 text-gray-400">
+                    No public routines available.
+                  </div>
+                )}
+              </TabsContent>
+            </Tabs>
+          </section>
+        </div>
+      </div>
     </div>
   );
 };

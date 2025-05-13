@@ -4,6 +4,9 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/Avatar';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
+import { Card } from '@/components/cards/card';
+import { Button } from '@/components/buttons/button';
+import { Plus, X } from 'lucide-react';
 
 export const UserList: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
@@ -74,47 +77,35 @@ export const UserList: React.FC = () => {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">People You May Know</h2>
-        <button 
-          className="text-blue-500 hover:text-blue-600"
-          onClick={() => navigate('/discover')}
-        >
+    <div className="px-4 pb-6 border-b border-zinc-800">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl text-gray-400">People You May Know</h2>
+        <Button variant="ghost" className="text-blue-500 p-0 h-auto flex items-center" onClick={() => navigate('/discover')}>
+          <Plus className="h-4 w-4 mr-1" />
           View More
-        </button>
+        </Button>
       </div>
       
-      <div className="grid gap-4">
-        {users.map((user) => (
-          <div key={user.id} className="bg-white rounded-lg shadow p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <Avatar>
-                  <AvatarImage src={user.profileImage} alt={user.name} />
-                  <AvatarFallback>{user.name[0]}</AvatarFallback>
+      <div className="grid grid-cols-3 gap-2">
+        {users.map(user => (
+          <Card key={user.id} className="bg-zinc-900 border-none p-4 flex flex-col items-center">
+            <div className="relative">
+              <Avatar className="h-16 w-16 mb-2">
+                <AvatarImage src={user.profileImage} />
+                <AvatarFallback className="bg-zinc-700">{user.name[0].toUpperCase()}</AvatarFallback>
                 </Avatar>
-                <div>
-                  <h3 className="font-semibold">{user.name}</h3>
-                  <p className="text-sm text-gray-500">@{user.username}</p>
-                </div>
-              </div>
-              <button
-                className={`px-4 py-2 rounded ${
-                  followingStates[user.id]
-                    ? 'border border-gray-300 hover:bg-gray-100'
-                    : 'bg-blue-500 text-white hover:bg-blue-600'
-                }`}
-                onClick={() => 
-                  followingStates[user.id]
-                    ? handleUnfollow(user.id)
-                    : handleFollow(user.id)
-                }
-              >
-                {followingStates[user.id] ? 'Unfollow' : 'Follow'}
-              </button>
             </div>
-          </div>
+            <span className="text-sm mb-1 truncate w-full text-center">{user.name}</span>
+            <span className="text-xs text-gray-400 mb-3">@{user.username}</span>
+            <Button 
+              className={`w-full ${followingStates[user.id] 
+                ? 'bg-zinc-700 hover:bg-zinc-600' 
+                : 'bg-blue-500 hover:bg-blue-600'}`}
+              onClick={() => followingStates[user.id] ? handleUnfollow(user.id) : handleFollow(user.id)}
+            >
+              {followingStates[user.id] ? 'Following' : 'Follow'}
+            </Button>
+          </Card>
         ))}
       </div>
     </div>

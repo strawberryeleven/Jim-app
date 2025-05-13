@@ -1,5 +1,4 @@
-
-import { Home, Dumbbell, User } from "lucide-react";
+import { Home, Dumbbell, User, Search } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
 const BottomNav = () => {
@@ -18,6 +17,13 @@ const BottomNav = () => {
         >
           <Home className="w-6 h-6" />
           <span className="text-xs mt-1">Home</span>
+        </Link>
+        <Link
+          to="/discover"
+          className={`flex flex-col items-center ${isActive("/discover")}`}
+        >
+          <Search className="w-6 h-6" />
+          <span className="text-xs mt-1">Discover</span>
         </Link>
         <Link
           to="/workout"

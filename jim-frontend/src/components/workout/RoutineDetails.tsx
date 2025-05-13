@@ -16,6 +16,8 @@ import {
 } from "@/components/dialogs/alert-dialog";
 import { useAppDispatch } from "@/hooks/redux-hooks";
 import { deleteRoutine } from "@/store/slices/RoutineSlice";
+import { useToast } from "@/components/tooltips/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 
 interface RoutineDetailsProps {
   routine: Routine;
@@ -24,7 +26,10 @@ interface RoutineDetailsProps {
 const RoutineDetails: React.FC<RoutineDetailsProps> = ({ routine }) => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
+  const { toast } = useToast();
+  const { user } = useAuth();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isLiked, setIsLiked] = useState(routine.likes.includes(user?.id || ''));
 
   const handleEdit = () => {
     navigate(`/edit-routine/${routine.id}`);
@@ -40,109 +45,143 @@ const RoutineDetails: React.FC<RoutineDetailsProps> = ({ routine }) => {
     navigate("/routines");
   };
 
+  const handleLike = async () => {
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in to like routines.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      if (isLiked) {
+        await routineService.likeRoutine(routine.id); // Toggle like state
+        routine.likes = routine.likes.filter(likeId => likeId !== user.id);
+      } else {
+        await routineService.likeRoutine(routine.id);
+        routine.likes = [...routine.likes, user.id];
+      }
+      setIsLiked(!isLiked);
+    } catch (err) {
+      console.error('Error updating like:', err);
+      toast({
+        title: "Error",
+        description: "Failed to update like. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleShare = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      toast({
+        title: "Link Copied",
+        description: "Routine link has been copied to clipboard.",
+      });
+    } catch (err) {
+      console.error('Error copying link:', err);
+      toast({
+        title: "Error",
+        description: "Failed to copy link. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const isOwner = user?.id === routine.createdBy;
+
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <Button
-          variant="ghost"
-          onClick={() => navigate("/routines")}
-          className="text-gray-400 hover:text-white"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Routines
-        </Button>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            onClick={handleEdit}
-            className="text-gray-400 hover:text-white"
-          >
-            <Edit className="w-4 h-4 mr-2" />
-            Edit
-          </Button>
-          <Button
-            variant="outline"
-            onClick={handleDelete}
-            className="text-red-400 hover:text-red-500 hover:bg-red-500/10"
-          >
-            <Trash2 className="w-4 h-4 mr-2" />
-            Delete
-          </Button>
-        </div>
+    <div className="flex flex-col min-h-screen bg-gradient-to-br from-zinc-900 via-zinc-800 to-blue-900 text-white relative overflow-hidden">
+      {/* Abstract Background Forms */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-900/20 rounded-full blur-3xl"></div>
+        <div className="absolute top-1/2 -left-20 w-60 h-60 bg-zinc-800/30 rounded-full blur-3xl"></div>
+        <div className="absolute -bottom-20 right-1/4 w-72 h-72 bg-blue-800/20 rounded-full blur-3xl"></div>
       </div>
-
-      {/* Routine Info */}
-      <Card className="p-6 bg-black/40">
-        <h1 className="text-2xl font-bold text-white mb-2">{routine.name}</h1>
-        <p className="text-gray-400 mb-4">{routine.description}</p>
-        <div className="flex items-center gap-4 text-sm text-gray-400">
-          <span>{routine.exercises.length} exercises</span>
-          <span>•</span>
-          <span>{routine.likes.length} likes</span>
-          <span>•</span>
-          <span>Created {new Date(routine.createdAt).toLocaleDateString()}</span>
+      <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 relative">
+        <div className="flex justify-between items-center mb-8">
+          <Button
+            variant="ghost"
+            onClick={() => navigate(-1)}
+            className="text-gray-400 hover:text-white transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5 mr-2" />
+            <span>Back</span>
+          </Button>
+          <h1 className="text-2xl font-bold text-blue-400">{routine.name}</h1>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              onClick={handleLike}
+              className={`text-gray-400 hover:text-white transition-colors ${isLiked ? 'text-red-500' : ''}`}
+            >
+              <Heart className="w-5 h-5" />
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={handleShare}
+              className="text-gray-400 hover:text-white transition-colors"
+            >
+              <Share2 className="w-5 h-5" />
+            </Button>
+            {isOwner && (
+              <>
+                <Button
+                  variant="ghost"
+                  onClick={() => navigate(`/routines/${routine.id}/edit`)}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  <Edit className="w-5 h-5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  onClick={handleDelete}
+                  className="text-gray-400 hover:text-red-500 transition-colors"
+                >
+                  <Trash2 className="w-5 h-5" />
+                </Button>
+              </>
+            )}
+          </div>
         </div>
-      </Card>
 
-      {/* Exercises */}
-      <div className="space-y-4">
-        <h2 className="text-xl font-semibold text-white">Exercises</h2>
-        {routine.exercises.map((exercise, index) => (
-          <Card key={index} className="p-4 bg-black/40">
-            <div className="flex items-start gap-4">
-              {exercise.exerciseDetails?.imageUrl ? (
-                <div className="w-24 h-24 bg-zinc-800 rounded-lg overflow-hidden">
+        <div className="max-w-4xl mx-auto w-full">
+          <div className="bg-white/5 backdrop-blur-sm rounded-lg border border-white/10 p-6 mb-8">
+            <p className="text-gray-300">{routine.description}</p>
+          </div>
+
+          <div className="space-y-6">
+            {routine.exercises.map((exercise) => (
+              <div
+                key={exercise.exerciseId}
+                className="bg-white/5 backdrop-blur-sm rounded-lg border border-white/10 p-6"
+              >
+                <div className="flex items-start gap-4">
                   <img
                     src={exercise.exerciseDetails.imageUrl}
                     alt={exercise.exerciseDetails.name}
-                    className="w-full h-full object-cover"
+                    className="w-24 h-24 rounded-lg object-cover"
                   />
-                </div>
-              ) : (
-                <div className="w-24 h-24 bg-zinc-800 rounded-lg flex items-center justify-center">
-                  <span className="text-gray-400">No Image</span>
-                </div>
-              )}
-              <div className="flex-1">
-                <h3 className="text-lg font-semibold text-white">
-                  {exercise.exerciseDetails?.name || "Loading..."}
-                </h3>
-                <p className="text-sm text-gray-400 mb-2">
-                  {exercise.exerciseDetails?.description}
-                </p>
-                <div className="flex gap-4 text-sm text-gray-400">
-                  <span>{exercise.exerciseDetails?.muscleGroup}</span>
-                  <span>•</span>
-                  <span>{exercise.exerciseDetails?.equipment}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Sets */}
-            <div className="mt-4">
-              <h4 className="text-sm font-medium text-gray-300 mb-2">Sets</h4>
-              <div className="space-y-2">
-                {exercise.sets.map((set, setIndex) => (
-                  <div
-                    key={setIndex}
-                    className="flex items-center justify-between bg-zinc-800/50 p-2 rounded"
-                  >
-                    <span className="text-sm text-gray-400">Set {setIndex + 1}</span>
-                    <div className="flex items-center gap-4">
-                      <span className="text-sm text-gray-400">
-                        {set.weight} kg × {set.reps} reps
-                      </span>
-                      {set.isCompleted && (
-                        <span className="text-xs text-green-500">Completed</span>
-                      )}
+                  <div className="flex-1">
+                    <h3 className="text-xl font-semibold text-white">{exercise.exerciseDetails.name}</h3>
+                    <p className="text-sm text-gray-400 mt-1">{exercise.exerciseDetails.description}</p>
+                    <div className="flex items-center gap-4 mt-4">
+                      <div className="text-sm text-gray-400">
+                        <span className="font-medium text-white">{exercise.sets.length}</span> sets
+                      </div>
+                      <div className="text-sm text-gray-400">
+                        <span className="font-medium text-white">{exercise.sets[0]?.reps || 0}</span> reps
+                      </div>
                     </div>
                   </div>
-                ))}
+                </div>
               </div>
-            </div>
-          </Card>
-        ))}
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* Delete Dialog */}

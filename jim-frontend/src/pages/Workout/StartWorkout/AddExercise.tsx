@@ -116,10 +116,17 @@ const AddExercise = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto"></div>
-          <p className="mt-4">Loading exercises...</p>
+      <div className="flex flex-col min-h-screen bg-gradient-to-br from-zinc-900 via-zinc-800 to-blue-900 text-white relative overflow-hidden">
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-900/20 rounded-full blur-3xl"></div>
+          <div className="absolute top-1/2 -left-20 w-60 h-60 bg-zinc-800/30 rounded-full blur-3xl"></div>
+          <div className="absolute -bottom-20 right-1/4 w-72 h-72 bg-blue-800/20 rounded-full blur-3xl"></div>
+        </div>
+        <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto"></div>
+            <p className="mt-4">Loading exercises...</p>
+          </div>
         </div>
       </div>
     );
@@ -127,129 +134,140 @@ const AddExercise = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-500">{error}</p>
-          <Button onClick={() => window.location.reload()} className="mt-4">
-            Try Again
-          </Button>
+      <div className="flex flex-col min-h-screen bg-gradient-to-br from-zinc-900 via-zinc-800 to-blue-900 text-white relative overflow-hidden">
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-900/20 rounded-full blur-3xl"></div>
+          <div className="absolute top-1/2 -left-20 w-60 h-60 bg-zinc-800/30 rounded-full blur-3xl"></div>
+          <div className="absolute -bottom-20 right-1/4 w-72 h-72 bg-blue-800/20 rounded-full blur-3xl"></div>
+        </div>
+        <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
+          <div className="text-center">
+            <p className="text-red-400">{error}</p>
+            <Button 
+              onClick={() => window.location.reload()} 
+              className="mt-4 bg-blue-500 hover:bg-blue-600 transition-colors"
+            >
+              Try Again
+            </Button>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-black text-white">
-      <div className="p-4 space-y-4">
-        <div className="flex justify-between items-center">
+    <div className="flex flex-col min-h-screen bg-gradient-to-br from-zinc-900 via-zinc-800 to-blue-900 text-white relative overflow-hidden">
+      {/* Abstract Background Forms */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-900/20 rounded-full blur-3xl"></div>
+        <div className="absolute top-1/2 -left-20 w-60 h-60 bg-zinc-800/30 rounded-full blur-3xl"></div>
+        <div className="absolute -bottom-20 right-1/4 w-72 h-72 bg-blue-800/20 rounded-full blur-3xl"></div>
+      </div>
+      <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 relative">
+        <div className="flex justify-between items-center mb-8">
           <Button
             variant="ghost"
-            className="text-white hover:text-blue-400"
             onClick={handleCancel}
+            className="text-gray-400 hover:text-white transition-colors"
           >
             Cancel
           </Button>
-          <h1 className="text-xl font-semibold">Add Exercise</h1>
+          <h1 className="text-2xl font-bold text-blue-400">Add Exercise</h1>
           <Button
             variant="ghost"
-            className="text-blue-400 hover:text-blue-500"
             onClick={handleDone}
+            className="text-blue-400 hover:text-blue-500 transition-colors"
           >
             Done
           </Button>
         </div>
 
-        <div className="relative">
-          <Search className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
-          <Input
-            className="w-full pl-9 bg-zinc-900 border-zinc-800 text-white placeholder:text-gray-500"
-            placeholder="Search exercise"
-            value={searchQuery}
-            onChange={handleSearchChange}
-          />
-        </div>
+        <div className="max-w-4xl mx-auto w-full space-y-6">
+          <div className="relative">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
+            <Input
+              className="w-full pl-9 bg-zinc-900 border-zinc-800 text-white placeholder:text-gray-500 focus:border-zinc-700 transition-colors"
+              placeholder="Search exercise"
+              value={searchQuery}
+              onChange={handleSearchChange}
+            />
+          </div>
 
-        <div className="space-y-2">
-          <Select value={selectedEquipment} onValueChange={handleEquipmentChange}>
-            <SelectTrigger className="w-full bg-gray-200 text-black border-zinc-800">
-              <SelectValue placeholder="All Equipment" />
-            </SelectTrigger>
-            <SelectContent className="bg-white text-black border-zinc-800">
-              <SelectGroup>
-                <SelectItem value="all-equipment">All Equipment</SelectItem>
-                {equipmentList.map((equipment) => (
-                  <SelectItem key={equipment} value={equipment}>
-                    {equipment}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
+          <div className="space-y-2">
+            <Select value={selectedEquipment} onValueChange={handleEquipmentChange}>
+              <SelectTrigger className="w-full bg-zinc-900 text-white border-zinc-800 focus:border-zinc-700 transition-colors">
+                <SelectValue placeholder="All Equipment" />
+              </SelectTrigger>
+              <SelectContent className="bg-zinc-900 text-white border-zinc-800">
+                <SelectGroup>
+                  <SelectItem value="all-equipment">All Equipment</SelectItem>
+                  {equipmentList.map((equipment) => (
+                    <SelectItem key={equipment} value={equipment}>
+                      {equipment}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
 
-          <Select value={selectedMuscle} onValueChange={handleMuscleChange}>
-            <SelectTrigger className="w-full bg-gray-200 text-black border-zinc-800">
-              <SelectValue placeholder="All Muscles" />
-            </SelectTrigger>
-            <SelectContent className="bg-white text-black border-zinc-800">
-              <SelectGroup>
-                <SelectItem value="all-muscles">All Muscles</SelectItem>
-                {muscleList.map((muscle) => (
-                  <SelectItem key={muscle} value={muscle}>
-                    {muscle}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </div>
+            <Select value={selectedMuscle} onValueChange={handleMuscleChange}>
+              <SelectTrigger className="w-full bg-zinc-900 text-white border-zinc-800 focus:border-zinc-700 transition-colors">
+                <SelectValue placeholder="All Muscles" />
+              </SelectTrigger>
+              <SelectContent className="bg-zinc-900 text-white border-zinc-800">
+                <SelectGroup>
+                  <SelectItem value="all-muscles">All Muscles</SelectItem>
+                  {muscleList.map((muscle) => (
+                    <SelectItem key={muscle} value={muscle}>
+                      {muscle}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
 
-        <div>
-          <h2 className="text-lg font-semibold mb-4 text-gray-400">
-            {filteredExercises.length} Exercises Found
-          </h2>
-          <ScrollArea className="h-[calc(100vh-240px)]">
-            <div className="space-y-4">
-              {filteredExercises.map((exercise) => (
-                <div
-                  key={exercise.id}
-                  className="flex items-center space-x-4 p-2 hover:bg-zinc-900 rounded-lg transition-colors"
-                >
-                  <div className="w-20 h-20 bg-zinc-800 rounded-lg overflow-hidden">
-                    <img
-                      src={exercise.imageUrl || "/images/default.png"}
-                      alt={exercise.name}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
+          <div>
+            <h2 className="text-lg font-semibold mb-4 text-blue-400">
+              {filteredExercises.length} Exercises Found
+            </h2>
+            <ScrollArea className="h-[calc(100vh-240px)]">
+              <div className="space-y-4">
+                {filteredExercises.map((exercise) => (
+                  <div
+                    key={exercise.id}
+                    className="flex items-center space-x-4 p-4 bg-white/5 backdrop-blur-sm hover:bg-white/10 rounded-lg transition-colors border border-white/10"
+                  >
+                    <div className="w-20 h-20 bg-zinc-800 rounded-lg overflow-hidden">
+                      <img
+                        src={exercise.imageUrl || "/images/default.png"}
+                        alt={exercise.name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-medium text-white">{exercise.name}</h3>
+                      <p className="text-sm text-gray-400">
+                        {exercise.muscleGroup} • {exercise.equipment}
+                      </p>
+                    </div>
 
-                  <div className="flex-1">
-                    <h3 className="font-medium">{exercise.name}</h3>
-                    <p className="text-sm text-gray-400">
-                      {exercise.muscleGroup} • {exercise.equipment}
-                    </p>
-                  </div>
-
-                  {isExerciseSelected(exercise.name) ? (
-                    <Button
-                      variant="ghost"
-                      className="p-2 hover:bg-zinc-800 rounded-full"
-                      onClick={() => handleRemoveExercise(exercise)}
-                    >
+                    {isExerciseSelected(exercise.name) ? (
                       <Check className="w-6 h-6 text-green-500" />
-                    </Button>
-                  ) : (
-                    <Button
-                      variant="ghost"
-                      className="p-2 hover:bg-zinc-800 rounded-full"
-                      onClick={() => handleAddExercise(exercise)}
-                    >
-                      <Plus className="w-6 h-6" />
-                    </Button>
-                  )}
-                </div>
-              ))}
-            </div>
-          </ScrollArea>
+                    ) : (
+                      <Button
+                        variant="ghost"
+                        className="p-2 hover:bg-zinc-800 rounded-full transition-colors"
+                        onClick={() => handleAddExercise(exercise)}
+                      >
+                        <Plus className="w-6 h-6" />
+                      </Button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </ScrollArea>
+          </div>
         </div>
       </div>
     </div>
