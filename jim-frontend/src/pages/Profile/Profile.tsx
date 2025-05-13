@@ -3,18 +3,19 @@ import { Button } from "@/components/buttons/button";
 import { Link } from "react-router-dom";
 import WorkoutChart from "../Workout/StartWorkout/WorkoutSummaryCard";
 import Dashboard from "./Dashboard";
-import WorkoutCard from "@/components/WorkoutCard";
-import { workouts } from "@/data/Workouts";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { setProfileData } from "@/store/slices/profileSlice";
+import { fetchWorkoutLogs, WorkoutLog } from "@/store/slices/WorkoutLogSlice";
+import { AppDispatch } from "@/store/store";
 
 const Profile = () => {
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const profile = useSelector((state: RootState) => state.profile.data);
   const loading = useSelector((state: RootState) => state.profile.loading);
+  const { logs } = useSelector((state: RootState) => state.workoutLogs);
 
   useEffect(() => {
     // TODO: Replace with actual API call
@@ -29,7 +30,14 @@ const Profile = () => {
       },
     };
     dispatch(setProfileData(mockProfileData));
+    dispatch(fetchWorkoutLogs());
   }, [dispatch]);
+
+  // Get recent workouts
+  const recentWorkouts = Object.entries(logs)
+    .sort(([dateA], [dateB]) => new Date(dateB).getTime() - new Date(dateA).getTime())
+    .slice(0, 5)
+    .flatMap(([date, logsForDate]) => logsForDate);
 
   if (loading) {
     return (
@@ -84,11 +92,60 @@ const Profile = () => {
             <Dashboard />
           </div>
 
-          {/* Workouts Section */}
+          {/* Recent Workouts Section */}
           <div className="w-full max-w-4xl">
             <h2 className="text-xl font-semibold text-gray-300 mb-6">Recent Workouts</h2>
             <div className="space-y-4">
-              <WorkoutCard />
+              {recentWorkouts.map((workout: WorkoutLog) => (
+                <div key={workout.id} className="bg-zinc-800 rounded-lg p-6 border border-zinc-700">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h3 className="text-lg font-semibold text-white">{workout.title}</h3>
+                      <p className="text-sm text-gray-400">{new Date(workout.date).toLocaleDateString()}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm text-gray-400">Duration: {workout.duration} min</p>
+                      <p className="text-sm text-gray-400">Volume: {workout.volume} kg</p>
+                    </div>
+                  </div>
+                  
+                  <div className="mb-4">
+                    <h4 className="text-sm font-medium text-gray-300 mb-2">Exercises:</h4>
+                    <div className="space-y-2">
+                      {workout.exercises.map((exercise, index) => (
+                        <div key={index} className="flex items-center justify-between bg-zinc-700 rounded-lg p-3">
+                          <div className="flex items-center space-x-3">
+                            <img 
+                              src={exercise.image} 
+                              alt={exercise.name} 
+                              className="w-10 h-10 rounded-lg object-cover"
+                            />
+                            <div>
+                              <p className="text-white font-medium">{exercise.name}</p>
+                              <p className="text-sm text-gray-400">{exercise.muscle}</p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-white">{exercise.sets} sets</p>
+                            {exercise.weight && exercise.reps && (
+                              <p className="text-sm text-gray-400">
+                                {exercise.weight}kg × {exercise.reps} reps
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {workout.notes && (
+                    <div className="mt-4">
+                      <h4 className="text-sm font-medium text-gray-300 mb-2">Notes:</h4>
+                      <p className="text-gray-400 text-sm">{workout.notes}</p>
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
           </div>
         </div>

@@ -9,13 +9,14 @@ import { useToast } from "@/hooks/use-toast";
 import { formatDuration } from "@/utils/FormatTime";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/popover";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/cards/hover-card";
-import DiscardWorkoutDialog from "@/components/workout/DiscardWorkoutDialog"; // Import the dialog component
+import DiscardWorkoutDialog from "@/components/workout/DiscardWorkoutDialog";
 import { useDispatch } from "react-redux";
 import { addWorkoutLog } from "@/store/slices/WorkoutLogSlice";
+import { AppDispatch } from "@/store/store";
 
 const SaveWorkout = () => {
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const { toast } = useToast();
   const { selectedExercises, clearExercises, startTime, resetStartTime } = useExerciseStore();
 
@@ -64,20 +65,33 @@ const SaveWorkout = () => {
     savedWorkouts.push(workout);
     localStorage.setItem("workouts", JSON.stringify(savedWorkouts));
 
-    if (visibility === "Private") {
-      const date = new Date().toLocaleDateString("en-US");
-      const log = {
-        title,
-        time: formattedDuration,
-        volume: `${volume} kg`,
-        exercises: selectedExercises.map(exercise => ({
-          sets: exercise.sets.length,
-          name: exercise.name,
-          image: exercise.image || "", // Provide image data if available
-        })),
-      };
-      dispatch(addWorkoutLog({ date, log }));
-    }
+    const date = new Date().toLocaleDateString("en-US");
+    const log = {
+      id: Date.now().toString(),
+      title,
+      time: formattedDuration,
+      volume: `${volume}`,
+      date,
+      isPublic: visibility === "Public",
+      notes: description,
+      exercises: selectedExercises.map(exercise => ({
+        name: exercise.name,
+        sets: exercise.sets.length,
+        image: exercise.image || "",
+        weight: exercise.sets[0]?.kg,
+        reps: exercise.sets[0]?.reps,
+        muscle: exercise.muscle
+      })),
+      totalSets,
+      duration: Math.floor(duration / 60),
+      muscleGroups: selectedExercises.reduce((acc, exercise) => {
+        if (exercise.muscle) {
+          acc[exercise.muscle] = (acc[exercise.muscle] || 0) + volume;
+        }
+        return acc;
+      }, {} as Record<string, number>)
+    };
+    dispatch(addWorkoutLog(log));
 
     toast({
       title: "Workout saved!",
