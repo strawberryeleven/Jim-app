@@ -14,7 +14,7 @@ router.put('/name', authenticateToken, generalRateLimiter, validateUpdateName, U
 router.put('/email', authenticateToken, generalRateLimiter, validateUpdateEmail, UserController.updateEmail);
 router.put('/password', authenticateToken, generalRateLimiter, validateUpdatePassword, UserController.updatePassword);
 
-router.get('/:id', generalRateLimiter, UserController.getUser);
+router.get('/me', authenticateToken, generalRateLimiter, UserController.getUser);
 router.post('/:id/follow', authenticateToken, generalRateLimiter, UserController.followUser);
 router.delete('/:id/follow', authenticateToken, generalRateLimiter, UserController.unfollowUser);
 router.get('/:id/followers', generalRateLimiter, UserController.getFollowers);

@@ -26,12 +26,16 @@ export interface ErrorResponse {
 
 export interface UserResponse {
   success: boolean;
-  user?: {
+  user: {
     id: string;
     name: string;
     email: string;
     profileImage?: string;
     bio?: string;
+    username: string;
+    workoutCount: number;
+    followersCount: number;
+    followingCount: number;
     followers: string[];
     following: string[];
   };

@@ -5,34 +5,30 @@ import { useSelector, useDispatch } from "react-redux";
 import { RootState, AppDispatch } from "@/store/store";
 import { updateProfileAsync } from "@/store/slices/profileSlice";
 import { Button } from "@/components/buttons/button";
+import { useToast } from "@/components/tooltips/use-toast";
+import { authService } from "@/services/authService";
 
 const EditProfile = () => {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const profile = useSelector((state: RootState) => state.profile.data);
   const updateStatus = useSelector((state: RootState) => state.profile.updateStatus);
   const error = useSelector((state: RootState) => state.profile.error);
 
   const initialData = {
-    name: profile?.username || "",
+    username: profile?.username || "",
     bio: profile?.bio || "",
     link: "",
-    sex: "",
-    birthday: "",
-    image: null,
+    sex: "" as "male" | "female" | "other" | "",
+    DOB: "",
   };
 
-  const [name, setName] = useState<string>(initialData.name);
+  const [username, setUsername] = useState<string>(initialData.username);
   const [bio, setBio] = useState<string>(initialData.bio);
   const [link, setLink] = useState<string>(initialData.link);
-  const [sex, setSex] = useState<string>(initialData.sex);
-  const [birthday, setBirthday] = useState<string>(initialData.birthday);
-  const [image, setImage] = useState<File | null>(null);
-  const [showImageOptions, setShowImageOptions] = useState(false);
-
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const initialImageRef = useRef<File | null>(null);
-
+  const [sex, setSex] = useState<"male" | "female" | "other" | "">(initialData.sex);
+  const [DOB, setDOB] = useState<string>(initialData.DOB);
   const [isDirty, setIsDirty] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
@@ -41,45 +37,90 @@ const EditProfile = () => {
 
   useEffect(() => {
     setIsDirty(
-      name !== initialData.name ||
-        bio !== initialData.bio ||
-        link !== initialData.link ||
-        sex !== initialData.sex ||
-        birthday !== initialData.birthday ||
-        image !== initialImageRef.current
+      username !== initialData.username ||
+      bio !== initialData.bio ||
+      link !== initialData.link ||
+      sex !== initialData.sex ||
+      DOB !== initialData.DOB
     );
-  }, [name, bio, link, sex, birthday, image]);
-
-  useEffect(() => {
-    if (updateStatus === 'succeeded') {
-      setShowSuccess(true);
-      setIsDirty(false);
-      setTimeout(() => {
-        setShowSuccess(false);
-        navigate(`/${from}`);
-      }, 1500);
-    }
-  }, [updateStatus, from, navigate]);
+  }, [username, bio, link, sex, DOB]);
 
   const handleSave = async () => {
-    const formData = new FormData();
-    if (image) {
-      formData.append('profilePicture', image);
+    try {
+      // Validate username
+      if (!username.trim()) {
+        toast({
+          title: "Error",
+          description: "Username is required",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Validate link if provided
+      if (link && !isValidUrl(link)) {
+        toast({
+          title: "Error",
+          description: "Please enter a valid URL",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Validate DOB if provided
+      if (DOB && !isValidDate(DOB)) {
+        toast({
+          title: "Error",
+          description: "Please enter a valid date",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const profileData = {
+        username: username.trim(),
+        bio: bio.trim(),
+        link: link.trim() || undefined,
+        sex: sex || undefined,
+        DOB: DOB || undefined,
+      };
+
+      const response = await authService.updateProfile(profileData);
+      
+      if (response.success) {
+        setShowSuccess(true);
+        setIsDirty(false);
+        toast({
+          title: "Success",
+          description: "Profile updated successfully",
+        });
+        setTimeout(() => {
+          setShowSuccess(false);
+          navigate(`/${from}`);
+        }, 1500);
+      }
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to update profile",
+        variant: "destructive",
+      });
     }
-
-    const profileData = {
-      username: name,
-      bio,
-      // Add other fields as needed
-    };
-
-    await dispatch(updateProfileAsync(profileData));
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setImage(e.target.files[0]);
+  const isValidUrl = (url: string): boolean => {
+    try {
+      new URL(url);
+      return true;
+    } catch {
+      return false;
     }
+  };
+
+  const isValidDate = (date: string): boolean => {
+    const dateObj = new Date(date);
+    return dateObj instanceof Date && !isNaN(dateObj.getTime());
   };
 
   return (
@@ -117,82 +158,26 @@ const EditProfile = () => {
             </div>
           )}
 
-          <div className="flex flex-col items-center">
-            <div className="w-32 h-32 rounded-full overflow-hidden flex items-center justify-center text-white text-4xl mb-4 bg-zinc-900 ring-4 ring-zinc-800">
-              {image ? (
-                <img
-                  src={URL.createObjectURL(image)}
-                  alt="Profile"
-                  className="w-full h-full object-cover"
-                />
-              ) : profile?.profilePicture ? (
-                <img
-                  src={profile.profilePicture}
-                  alt="Profile"
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                name.trim().charAt(0).toUpperCase() || "?"
-              )}
-            </div>
-            <Button
-              variant="ghost"
-              className="text-blue-500 hover:text-blue-600 transition-colors"
-              onClick={() => setShowImageOptions((prev) => !prev)}
-            >
-              Change Picture
-            </Button>
-            {showImageOptions && (
-              <div className="mt-2 bg-zinc-900 border border-zinc-800 rounded-lg shadow-lg text-sm w-48 z-10 absolute">
-                <button
-                  onClick={() => {
-                    fileInputRef.current?.click();
-                    setShowImageOptions(false);
-                  }}
-                  className="block w-full text-left px-4 py-3 text-white hover:bg-zinc-800 transition-colors"
-                >
-                  Choose from Library
-                </button>
-                {image && (
-                  <button
-                    onClick={() => {
-                      setImage(null);
-                      setShowImageOptions(false);
-                    }}
-                    className="block w-full text-left px-4 py-3 text-red-500 hover:bg-zinc-800 transition-colors"
-                  >
-                    Delete Picture
-                  </button>
-                )}
-              </div>
-            )}
-            <input
-              type="file"
-              accept="image/*"
-              ref={fileInputRef}
-              className="hidden"
-              onChange={handleImageChange}
-            />
-          </div>
-
           <div className="space-y-6">
             <div>
-              <label className="block text-sm font-medium text-gray-400 mb-2">Name</label>
+              <label className="block text-sm font-medium text-gray-400 mb-2">Username</label>
               <input
                 className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-2 text-white placeholder:text-gray-500 focus:border-zinc-700 transition-colors"
-                placeholder="Your full name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
+                placeholder="Your username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-400 mb-2">Bio</label>
-              <input
+              <textarea
                 className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-2 text-white placeholder:text-gray-500 focus:border-zinc-700 transition-colors"
-                placeholder="Describe yourself"
+                placeholder="Tell us about yourself"
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
+                rows={4}
               />
             </div>
 
@@ -211,7 +196,7 @@ const EditProfile = () => {
               <select
                 className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-2 text-white focus:border-zinc-700 transition-colors"
                 value={sex}
-                onChange={(e) => setSex(e.target.value)}
+                onChange={(e) => setSex(e.target.value as "male" | "female" | "other" | "")}
               >
                 <option value="">Select</option>
                 <option value="male">Male</option>
@@ -221,12 +206,12 @@ const EditProfile = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-400 mb-2">Birthday</label>
+              <label className="block text-sm font-medium text-gray-400 mb-2">Date of Birth</label>
               <input
                 type="date"
                 className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-2 text-white focus:border-zinc-700 transition-colors"
-                value={birthday}
-                onChange={(e) => setBirthday(e.target.value)}
+                value={DOB}
+                onChange={(e) => setDOB(e.target.value)}
               />
             </div>
           </div>

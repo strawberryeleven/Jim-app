@@ -3,11 +3,16 @@ import User from '../models/userModel';
 import { ErrorResponse, UserResponse, UsersResponse } from '../types';
 import { mapUserToResponse } from '../utils/mappers';
 import bcrypt from 'bcryptjs';
+import WorkoutLog from '../models/workoutLogModel';
 
 export class UserController {
   static async getUser(req: Request, res: Response) {
     try {
-      const user = await User.findById(req.params.id).lean();
+      const userId = (req as any).user.userId;
+      const user = await User.findById(userId)
+        .select('name email profileImage bio followers following')
+        .lean();
+
       if (!user) {
         const response: ErrorResponse = {
           success: false,
@@ -17,9 +22,18 @@ export class UserController {
         return res.status(404).json(response);
       }
 
+      // Get workout count
+      const workoutCount = await WorkoutLog.countDocuments({ userId });
+
       const response: UserResponse = {
         success: true,
-        user: mapUserToResponse(user),
+        user: {
+          ...mapUserToResponse(user),
+          username: user.name,
+          workoutCount,
+          followersCount: user.followers?.length || 0,
+          followingCount: user.following?.length || 0
+        }
       };
       res.json(response);
     } catch (error) {
@@ -29,7 +43,9 @@ export class UserController {
 
   static async getProfile(req: Request, res: Response) {
     try {
-      const user = await User.findById((req as any).user.userId).lean();
+      const user = await User.findById((req as any).user.userId)
+        .select('name email profileImage bio followers following')
+        .lean();
       if (!user) {
         const response: ErrorResponse = {
           success: false,
@@ -39,9 +55,17 @@ export class UserController {
         return res.status(404).json(response);
       }
 
+      const workoutCount = await WorkoutLog.countDocuments({ userId: user._id });
+
       const response: UserResponse = {
         success: true,
-        user: mapUserToResponse(user),
+        user: {
+          ...mapUserToResponse(user),
+          username: user.name,
+          workoutCount,
+          followersCount: user.followers?.length || 0,
+          followingCount: user.following?.length || 0
+        }
       };
       res.json(response);
     } catch (error) {
@@ -65,9 +89,17 @@ export class UserController {
         return res.status(404).json(response);
       }
 
+      const workoutCount = await WorkoutLog.countDocuments({ userId: user._id });
+
       const response: UserResponse = {
         success: true,
-        user: mapUserToResponse(user),
+        user: {
+          ...mapUserToResponse(user),
+          username: user.name,
+          workoutCount,
+          followersCount: user.followers?.length || 0,
+          followingCount: user.following?.length || 0
+        }
       };
       res.json(response);
     } catch (error) {
@@ -96,9 +128,26 @@ export class UserController {
       });
 
       const updatedUser = await User.findById((req as any).user.userId).lean();
+      if (!updatedUser) {
+        const response: ErrorResponse = {
+          success: false,
+          error: 'User not found',
+          code: 'USER_NOT_FOUND',
+        };
+        return res.status(404).json(response);
+      }
+
+      const workoutCount = await WorkoutLog.countDocuments({ userId: updatedUser._id });
+
       const response: UserResponse = {
         success: true,
-        user: mapUserToResponse(updatedUser!),
+        user: {
+          ...mapUserToResponse(updatedUser),
+          username: updatedUser.name,
+          workoutCount,
+          followersCount: updatedUser.followers?.length || 0,
+          followingCount: updatedUser.following?.length || 0
+        }
       };
       res.json(response);
     } catch (error) {
@@ -127,9 +176,26 @@ export class UserController {
       });
 
       const updatedUser = await User.findById((req as any).user.userId).lean();
+      if (!updatedUser) {
+        const response: ErrorResponse = {
+          success: false,
+          error: 'User not found',
+          code: 'USER_NOT_FOUND',
+        };
+        return res.status(404).json(response);
+      }
+
+      const workoutCount = await WorkoutLog.countDocuments({ userId: updatedUser._id });
+
       const response: UserResponse = {
         success: true,
-        user: mapUserToResponse(updatedUser!),
+        user: {
+          ...mapUserToResponse(updatedUser),
+          username: updatedUser.name,
+          workoutCount,
+          followersCount: updatedUser.followers?.length || 0,
+          followingCount: updatedUser.following?.length || 0
+        }
       };
       res.json(response);
     } catch (error) {
@@ -204,9 +270,17 @@ export class UserController {
         return res.status(404).json(response);
       }
 
+      const workoutCount = await WorkoutLog.countDocuments({ userId: user._id });
+
       const response: UserResponse = {
         success: true,
-        user: mapUserToResponse(user),
+        user: {
+          ...mapUserToResponse(user),
+          username: user.name,
+          workoutCount,
+          followersCount: user.followers?.length || 0,
+          followingCount: user.following?.length || 0
+        }
       };
       res.json(response);
     } catch (error) {
@@ -242,9 +316,17 @@ export class UserController {
         return res.status(404).json(response);
       }
 
+      const workoutCount = await WorkoutLog.countDocuments({ userId: user._id });
+
       const response: UserResponse = {
         success: true,
-        user: mapUserToResponse(user),
+        user: {
+          ...mapUserToResponse(user),
+          username: user.name,
+          workoutCount,
+          followersCount: user.followers?.length || 0,
+          followingCount: user.following?.length || 0
+        }
       };
       res.json(response);
     } catch (error) {
@@ -283,9 +365,17 @@ export class UserController {
       user.password = hashedPassword;
       await user.save();
 
+      const workoutCount = await WorkoutLog.countDocuments({ userId: user._id });
+
       const response: UserResponse = {
         success: true,
-        message: 'Password updated successfully',
+        user: {
+          ...mapUserToResponse(user),
+          username: user.name,
+          workoutCount,
+          followersCount: user.followers?.length || 0,
+          followingCount: user.following?.length || 0
+        }
       };
       res.json(response);
     } catch (error) {

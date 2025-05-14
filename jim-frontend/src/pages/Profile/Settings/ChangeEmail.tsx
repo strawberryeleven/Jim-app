@@ -1,44 +1,59 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
-import { RootState, AppDispatch } from "@/store/store";
-import { updateEmailAsync } from "@/store/slices/profileSlice";
 import { ArrowLeft } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/buttons/button";
+import { useToast } from "@/components/tooltips/use-toast";
+import { authService } from "@/services/authService";
 
-const ChangeEmail = () => {
-  const dispatch = useDispatch<AppDispatch>();
+export default function ChangeEmail() {
   const navigate = useNavigate();
-  const updateStatus = useSelector((state: RootState) => state.profile.updateStatus);
-  const error = useSelector((state: RootState) => state.profile.error);
+  const { toast } = useToast();
+  const [email, setEmail] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const [newEmail, setNewEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [validationError, setValidationError] = useState("");
-  const [success, setSuccess] = useState(false);
-
-  const handleSave = async () => {
-    setValidationError("");
-
-    if (!newEmail || !password) {
-      setValidationError("Please fill in all fields.");
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!email.trim()) {
+      toast({
+        title: "Error",
+        description: "Email is required",
+        variant: "destructive",
+      });
       return;
     }
 
-    if (!newEmail.includes("@")) {
-      setValidationError("Please enter a valid email address.");
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) {
+      toast({
+        title: "Error",
+        description: "Please enter a valid email address",
+        variant: "destructive",
+      });
       return;
     }
 
     try {
-      await dispatch(updateEmailAsync({ newEmail, password })).unwrap();
-      setSuccess(true);
-      setTimeout(() => {
-        setSuccess(false);
-        navigate("/settings/account");
-      }, 2000);
-    } catch (err) {
-      // Error is handled by the Redux state
+      setIsLoading(true);
+      const response = await authService.updateEmail({ email: email.trim() });
+      
+      if (response.success) {
+        toast({
+          title: "Success",
+          description: "Email updated successfully",
+        });
+        navigate("/settings");
+      }
+    } catch (error) {
+      console.error('Error updating email:', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to update email",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -48,7 +63,7 @@ const ChangeEmail = () => {
         <div className="flex justify-between items-center mb-8">
           <Button
             variant="ghost"
-            onClick={() => navigate("/settings/account")}
+            onClick={() => navigate("/settings")}
             className="text-gray-400 hover:text-white transition-colors"
           >
             <ArrowLeft className="h-6 w-6" />
@@ -57,60 +72,32 @@ const ChangeEmail = () => {
           <div className="w-6" /> {/* Spacer for alignment */}
         </div>
 
-        <div className="max-w-4xl mx-auto w-full space-y-8">
-          {validationError && (
-            <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-500 font-medium">
-              {validationError}
-            </div>
-          )}
-          {error && (
-            <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-500 font-medium">
-              {error}
-            </div>
-          )}
-          {success && (
-            <div className="p-4 bg-green-500/10 border border-green-500/20 rounded-lg text-green-500 font-medium">
-              Email updated successfully!
-            </div>
-          )}
-
-          <div className="space-y-6">
+        <div className="max-w-md mx-auto w-full">
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="block text-sm font-medium text-gray-400 mb-2">New Email</label>
+              <label className="block text-sm font-medium text-gray-400 mb-2">
+                New Email
+              </label>
               <input
                 type="email"
                 className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-2 text-white placeholder:text-gray-500 focus:border-zinc-700 transition-colors"
                 placeholder="Enter new email"
-                value={newEmail}
-                onChange={(e) => setNewEmail(e.target.value)}
-                disabled={updateStatus === 'loading'}
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-400 mb-2">Current Password</label>
-              <input
-                type="password"
-                className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-2 text-white placeholder:text-gray-500 focus:border-zinc-700 transition-colors"
-                placeholder="Enter current password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                disabled={updateStatus === 'loading'}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
               />
             </div>
 
             <Button
-              className="w-full bg-blue-500 hover:bg-blue-600 text-white py-6 text-lg font-medium rounded-xl transition-colors"
-              onClick={handleSave}
-              disabled={updateStatus === 'loading'}
+              type="submit"
+              className="w-full bg-blue-500 hover:bg-blue-600 text-white transition-colors"
+              disabled={isLoading}
             >
-              {updateStatus === 'loading' ? 'Updating...' : 'Update Email'}
+              {isLoading ? "Updating..." : "Update Email"}
             </Button>
-          </div>
+          </form>
         </div>
       </div>
     </div>
   );
-};
-
-export default ChangeEmail;
+}

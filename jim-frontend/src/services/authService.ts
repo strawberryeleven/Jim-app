@@ -15,6 +15,14 @@ interface User {
   id: string;
   email: string;
   name: string;
+  username: string;
+  profileImage?: string;
+  bio?: string;
+  workoutCount: number;
+  followersCount: number;
+  followingCount: number;
+  followers: string[];
+  following: string[];
   createdAt?: string;
   lastLogin?: string;
 }
@@ -29,6 +37,46 @@ interface ErrorResponse {
   success: false;
   error: string;
   code: string;
+}
+
+interface UpdateProfileData {
+  username: string;
+  bio?: string;
+  link?: string;
+  sex?: 'male' | 'female' | 'other';
+  DOB?: string;
+}
+
+interface UpdateProfileResponse {
+  success: boolean;
+  profile: {
+    userId: string;
+    username: string;
+    bio: string;
+    link: string;
+    sex: string;
+    DOB: Date;
+    createdAt: Date;
+    updatedAt: Date;
+  };
+}
+
+interface UpdateUsernameData {
+  name: string;
+}
+
+interface UpdateEmailData {
+  email: string;
+}
+
+interface UpdatePasswordData {
+  currentPassword: string;
+  newPassword: string;
+}
+
+interface UpdateResponse {
+  success: boolean;
+  user: User;
 }
 
 // Helper function to get the token from localStorage
@@ -188,7 +236,7 @@ export const authService = {
     }
   },
 
-  async updateProfile(profileData: Partial<User>): Promise<User> {
+  async updateProfile(profileData: UpdateProfileData): Promise<UpdateProfileResponse> {
     try {
       const token = getToken();
       if (!token) {
@@ -210,9 +258,96 @@ export const authService = {
       }
 
       const data = await response.json();
-      return data.user;
+      return data;
     } catch (error) {
       console.error('Update profile error:', error);
+      throw error;
+    }
+  },
+
+  async updateUsername(data: UpdateUsernameData): Promise<UpdateResponse> {
+    try {
+      const token = getToken();
+      if (!token) {
+        throw new Error('No token found');
+      }
+
+      const response = await fetch(API_ENDPOINTS.users.updateUsername, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        await handleApiError(response);
+      }
+
+      const responseData = await response.json();
+      return responseData;
+    } catch (error) {
+      console.error('Update username error:', error);
+      throw error;
+    }
+  },
+
+  async updateEmail(data: UpdateEmailData): Promise<UpdateResponse> {
+    try {
+      const token = getToken();
+      if (!token) {
+        throw new Error('No token found');
+      }
+
+      const response = await fetch(API_ENDPOINTS.users.updateEmail, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        await handleApiError(response);
+      }
+
+      const responseData = await response.json();
+      return responseData;
+    } catch (error) {
+      console.error('Update email error:', error);
+      throw error;
+    }
+  },
+
+  async updatePassword(data: UpdatePasswordData): Promise<UpdateResponse> {
+    try {
+      const token = getToken();
+      if (!token) {
+        throw new Error('No token found');
+      }
+
+      const response = await fetch(API_ENDPOINTS.users.updatePassword, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        await handleApiError(response);
+      }
+
+      const responseData = await response.json();
+      return responseData;
+    } catch (error) {
+      console.error('Update password error:', error);
       throw error;
     }
   },

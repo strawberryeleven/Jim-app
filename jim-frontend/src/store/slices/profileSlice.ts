@@ -12,7 +12,7 @@ export interface ProfileData {
   id: string;
   username: string;
   email: string;
-  profilePicture?: string;
+  profileImage?: string;
   bio?: string;
   stats: ProfileStats;
   measurements?: {
@@ -25,9 +25,9 @@ export interface ProfileData {
     date?: string;
   };
   preferences?: {
-    theme: 'light' | 'dark';
-    notifications: boolean;
-    language: string;
+    theme?: 'light' | 'dark';
+    notifications?: boolean;
+    language?: string;
   };
 }
 

@@ -18,6 +18,9 @@ export const API_ENDPOINTS = {
   users: {
     profile: `${API_BASE_URL}/users/profile`,
     updateProfile: `${API_BASE_URL}/users/profile`,
+    updateUsername: `${API_BASE_URL}/users/name`,
+    updateEmail: `${API_BASE_URL}/users/email`,
+    updatePassword: `${API_BASE_URL}/users/password`,
   },
   exercises: {
     getAll: `${API_BASE_URL}/exercises`,
