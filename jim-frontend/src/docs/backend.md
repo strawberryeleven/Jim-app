@@ -1,0 +1,569 @@
+# JIM BACKEND API DOCUMENTATION
+
+Base URL: http://localhost:5000/api
+
+## Authentication
+
+All protected routes require a Bearer token in the Authorization header:
+Authorization: Bearer <access_token>
+
+## Cookies
+
+The API uses HTTP-only cookies for refresh tokens:
+
+- refreshToken: HTTP-only cookie for token refresh
+- Secure in production
+- 7-day expiration
+
+1. Authentication Endpoints
+
+---
+
+## 1.1 Register User
+
+POST /auth/register
+
+Headers:
+
+- Content-Type: application/json
+
+Request Body:
+{
+"email": string, // Required, valid email format
+"password": string, // Required, min 6 characters
+"name": string // Required, min 2 characters
+}
+
+Response (201 Created):
+{
+"success": true,
+"user": {
+"id": string,
+"email": string,
+"name": string
+},
+"token": string // JWT access token
+}
+
+Error Responses:
+
+- 400 Bad Request: Email already exists
+  {
+  "success": false,
+  "error": "Email already exists",
+  "code": "AUTH002"
+  }
+
+  1.2 Login
+
+---
+
+POST /auth/login
+
+Headers:
+
+- Content-Type: application/json
+
+Request Body:
+{
+"email": string, // Required
+"password": string // Required
+}
+
+Response (200 OK):
+{
+"success": true,
+"user": {
+"id": string,
+"email": string,
+"name": string
+},
+"token": string // JWT access token
+}
+
+Error Responses:
+
+- 401 Unauthorized: Invalid credentials
+  {
+  "success": false,
+  "error": "Invalid credentials",
+  "code": "AUTH001"
+  }
+- 404 Not Found: Account not found
+  {
+  "success": false,
+  "error": "Account not found",
+  "code": "AUTH005"
+  }
+- 403 Forbidden: Account inactive
+  {
+  "success": false,
+  "error": "Account is inactive",
+  "code": "AUTH006"
+  }
+
+  1.3 Logout
+
+---
+
+POST /auth/logout
+
+Headers:
+
+- Authorization: Bearer <token>
+
+Response (200 OK):
+{
+"success": true,
+"message": "Logged out successfully"
+}
+
+## 1.4 Verify Token
+
+GET /auth/verify
+
+Headers:
+
+- Authorization: Bearer <token>
+
+Response (200 OK):
+{
+"success": true,
+"user": {
+"id": string,
+"email": string,
+"name": string
+}
+}
+
+Error Response:
+
+- 404 Not Found: Account not found
+  {
+  "success": false,
+  "error": "Account not found",
+  "code": "AUTH005"
+  }
+
+2. User Endpoints
+
+---
+
+## 2.1 Get User Profile
+
+GET /users/profile
+
+Headers:
+
+- Authorization: Bearer <token>
+
+Response (200 OK):
+{
+"success": true,
+"user": {
+"id": string,
+"email": string,
+"name": string,
+"createdAt": string (ISO date),
+"lastLogin": string (ISO date)
+}
+}
+
+## 2.2 Update User Profile
+
+PUT /users/profile
+
+Headers:
+
+- Authorization: Bearer <token>
+- Content-Type: application/json
+
+Request Body:
+{
+"name": string, // Optional
+"email": string // Optional, valid email format
+}
+
+Response (200 OK):
+{
+"success": true,
+"user": {
+"id": string,
+"email": string,
+"name": string
+}
+}
+
+3. Exercise Endpoints
+
+---
+
+## 3.1 Get All Exercises
+
+GET /exercises
+
+Headers:
+
+- Authorization: Bearer <token>
+
+Query Parameters:
+
+- page: number (default: 1)
+- limit: number (default: 10)
+- search: string (optional)
+
+Response (200 OK):
+{
+"success": true,
+"exercises": [
+{
+"id": string,
+"name": string,
+"description": string,
+"muscleGroup": string,
+"equipment": string,
+"difficulty": string
+}
+],
+"pagination": {
+"total": number,
+"page": number,
+"pages": number
+}
+}
+
+## 3.2 Create Exercise
+
+POST /exercises
+
+Headers:
+
+- Authorization: Bearer <token>
+- Content-Type: application/json
+
+Request Body:
+{
+"name": string, // Required
+"description": string, // Required
+"muscleGroup": string, // Required
+"equipment": string, // Required
+"difficulty": string // Required
+}
+
+Response (201 Created):
+{
+"success": true,
+"exercise": {
+"id": string,
+"name": string,
+"description": string,
+"muscleGroup": string,
+"equipment": string,
+"difficulty": string
+}
+}
+
+4. Workout Endpoints
+
+---
+
+## 4.1 Get All Workouts
+
+GET /workouts
+
+Headers:
+
+- Authorization: Bearer <token>
+
+Query Parameters:
+
+- page: number (default: 1)
+- limit: number (default: 10)
+
+Response (200 OK):
+{
+"success": true,
+"workouts": [
+{
+"id": string,
+"name": string,
+"description": string,
+"exercises": [
+{
+"exerciseId": string,
+"sets": number,
+"reps": number,
+"weight": number
+}
+],
+"createdBy": string (user ID)
+}
+],
+"pagination": {
+"total": number,
+"page": number,
+"pages": number
+}
+}
+
+## 4.2 Create Workout
+
+POST /workouts
+
+Headers:
+
+- Authorization: Bearer <token>
+- Content-Type: application/json
+
+Request Body:
+{
+"name": string, // Required
+"description": string, // Required
+"exercises": [ // Required, at least one exercise
+{
+"exerciseId": string,
+"sets": number,
+"reps": number,
+"weight": number
+}
+]
+}
+
+Response (201 Created):
+{
+"success": true,
+"workout": {
+"id": string,
+"name": string,
+"description": string,
+"exercises": [
+{
+"exerciseId": string,
+"sets": number,
+"reps": number,
+"weight": number
+}
+],
+"createdBy": string (user ID)
+}
+}
+
+5. Routine Endpoints
+
+---
+
+## 5.1 Get All Routines
+
+GET /routines
+
+Headers:
+
+- Authorization: Bearer <token>
+
+Query Parameters:
+
+- page: number (default: 1)
+- limit: number (default: 10)
+
+Response (200 OK):
+{
+"success": true,
+"routines": [
+{
+"id": string,
+"name": string,
+"description": string,
+"workouts": [
+{
+"workoutId": string,
+"day": number,
+"order": number
+}
+],
+"createdBy": string (user ID)
+}
+],
+"pagination": {
+"total": number,
+"page": number,
+"pages": number
+}
+}
+
+## 5.2 Create Routine
+
+POST /routines
+
+Headers:
+
+- Authorization: Bearer <token>
+- Content-Type: application/json
+
+Request Body:
+{
+"name": string, // Required
+"description": string, // Required
+"workouts": [ // Required, at least one workout
+{
+"workoutId": string,
+"day": number,
+"order": number
+}
+]
+}
+
+Response (201 Created):
+{
+"success": true,
+"routine": {
+"id": string,
+"name": string,
+"description": string,
+"workouts": [
+{
+"workoutId": string,
+"day": number,
+"order": number
+}
+],
+"createdBy": string (user ID)
+}
+}
+
+6. Workout Log Endpoints
+
+---
+
+## 6.1 Log Workout
+
+POST /workout-logs
+
+Headers:
+
+- Authorization: Bearer <token>
+- Content-Type: application/json
+
+Request Body:
+{
+"workoutId": string, // Required
+"exercises": [ // Required, at least one exercise
+{
+"exerciseId": string,
+"sets": [
+{
+"reps": number,
+"weight": number,
+"completed": boolean
+}
+]
+}
+],
+"duration": number, // Required, in minutes
+"notes": string // Optional
+}
+
+Response (201 Created):
+{
+"success": true,
+"workoutLog": {
+"id": string,
+"workoutId": string,
+"exercises": [
+{
+"exerciseId": string,
+"sets": [
+{
+"reps": number,
+"weight": number,
+"completed": boolean
+}
+]
+}
+],
+"duration": number,
+"notes": string,
+"createdBy": string (user ID),
+"createdAt": string (ISO date)
+}
+}
+
+## 6.2 Get Workout History
+
+GET /workout-logs
+
+Headers:
+
+- Authorization: Bearer <token>
+
+Query Parameters:
+
+- page: number (default: 1)
+- limit: number (default: 10)
+- startDate: string (ISO date, optional)
+- endDate: string (ISO date, optional)
+
+Response (200 OK):
+{
+"success": true,
+"workoutLogs": [
+{
+"id": string,
+"workoutId": string,
+"exercises": [
+{
+"exerciseId": string,
+"sets": [
+{
+"reps": number,
+"weight": number,
+"completed": boolean
+}
+]
+}
+],
+"duration": number,
+"notes": string,
+"createdBy": string (user ID),
+"createdAt": string (ISO date)
+}
+],
+"pagination": {
+"total": number,
+"page": number,
+"pages": number
+}
+}
+
+## Error Handling
+
+All endpoints follow a consistent error response format:
+
+{
+"success": false,
+"error": string,
+"code": string
+}
+
+Common Error Codes:
+
+- AUTH001: Invalid credentials
+- AUTH002: Email already exists
+- AUTH005: Account not found
+- AUTH006: Account inactive
+- VAL001: Validation error
+- RATE001: Rate limit exceeded
+
+## Rate Limiting
+
+- Register: 5 requests per hour
+- Login: 10 requests per hour
+- Other endpoints: 100 requests per hour
+
+## Security Notes
+
+1. All passwords are hashed using bcrypt
+2. JWT tokens expire after 1 hour
+3. Refresh tokens are stored in HTTP-only cookies
+4. CORS is enabled for frontend origin
+5. Rate limiting is implemented for all routes
+6. Input validation is performed on all requests

@@ -1,0 +1,400 @@
+ROUTINE API ENDPOINTS DOCUMENTATION
+=================================
+
+Base URL: http://localhost:5000/api/routines
+
+1. GET ALL PUBLIC ROUTINES
+-------------------------
+Endpoint: GET /
+Authentication: Optional
+Rate Limit: Yes
+
+Query Parameters:
+- page: number (default: 1)
+- limit: number (default: 10)
+
+Response (200 OK):
+{
+    "success": true,
+    "routines": [
+        {
+            "id": string,
+            "name": string,
+            "description": string,
+            "exercises": [
+                {
+                    "exerciseId": string,
+                    "sets": [
+                        {
+                            "weight": number,
+                            "reps": number,
+                            "isCompleted": boolean
+                        }
+                    ],
+                    "order": number
+                }
+            ],
+            "createdBy": string,
+            "isPublic": boolean,
+            "likes": string[],
+            "createdAt": string,
+            "updatedAt": string
+        }
+    ],
+    "pagination": {
+        "total": number,
+        "page": number,
+        "pages": number
+    }
+}
+
+Error Response (500):
+{
+    "success": false,
+    "error": "Failed to fetch routines",
+    "code": "FETCH_FAILED"
+}
+
+2. GET ROUTINE BY ID
+-------------------
+Endpoint: GET /:id
+Authentication: Optional
+Rate Limit: Yes
+
+Response (200 OK):
+{
+    "success": true,
+    "routine": {
+        "id": string,
+        "name": string,
+        "description": string,
+        "exercises": [
+            {
+                "exerciseId": string,
+                "sets": [
+                    {
+                        "weight": number,
+                        "reps": number,
+                        "isCompleted": boolean
+                    }
+                ],
+                "order": number
+            }
+        ],
+        "createdBy": string,
+        "isPublic": boolean,
+        "likes": string[],
+        "createdAt": string,
+        "updatedAt": string
+    }
+}
+
+Error Responses:
+- 404 Not Found:
+{
+    "success": false,
+    "error": "Routine not found",
+    "code": "ROUTINE_NOT_FOUND"
+}
+
+- 403 Forbidden:
+{
+    "success": false,
+    "error": "Unauthorized access to private routine",
+    "code": "UNAUTHORIZED"
+}
+
+3. GET USER'S PUBLIC ROUTINES
+----------------------------
+Endpoint: GET /user/:userId
+Authentication: Optional
+Rate Limit: Yes
+
+Query Parameters:
+- page: number (default: 1)
+- limit: number (default: 10)
+
+Response (200 OK):
+{
+    "success": true,
+    "routines": [
+        {
+            "id": string,
+            "name": string,
+            "description": string,
+            "exercises": [
+                {
+                    "exerciseId": string,
+                    "sets": [
+                        {
+                            "weight": number,
+                            "reps": number,
+                            "isCompleted": boolean
+                        }
+                    ],
+                    "order": number
+                }
+            ],
+            "createdBy": string,
+            "isPublic": boolean,
+            "likes": string[],
+            "createdAt": string,
+            "updatedAt": string
+        }
+    ],
+    "pagination": {
+        "total": number,
+        "page": number,
+        "pages": number
+    }
+}
+
+4. CREATE ROUTINE
+----------------
+Endpoint: POST /
+Authentication: Required
+Rate Limit: Yes
+Content-Type: application/json
+
+Request Body:
+{
+    "name": string,           // Required
+    "description": string,    // Required
+    "exercises": [           // Required, at least one exercise
+        {
+            "exerciseId": string,
+            "sets": [
+                {
+                    "weight": number,
+                    "reps": number,
+                    "isCompleted": boolean (optional)
+                }
+            ],
+            "order": number
+        }
+    ],
+    "isPublic": boolean      // Optional, default: false
+}
+
+Response (201 Created):
+{
+    "success": true,
+    "routine": {
+        "id": string,
+        "name": string,
+        "description": string,
+        "exercises": [
+            {
+                "exerciseId": string,
+                "sets": [
+                    {
+                        "weight": number,
+                        "reps": number,
+                        "isCompleted": boolean
+                    }
+                ],
+                "order": number
+            }
+        ],
+        "createdBy": string,
+        "isPublic": boolean,
+        "likes": [],
+        "createdAt": string,
+        "updatedAt": string
+    }
+}
+
+Error Responses:
+- 400 Bad Request:
+{
+    "success": false,
+    "error": "Invalid routine input",
+    "code": "INVALID_INPUT"
+}
+
+- 500 Server Error:
+{
+    "success": false,
+    "error": "Failed to create routine",
+    "code": "CREATE_FAILED"
+}
+
+5. UPDATE ROUTINE
+----------------
+Endpoint: PUT /:id
+Authentication: Required
+Rate Limit: Yes
+Content-Type: application/json
+
+Request Body:
+{
+    "name": string,           // Optional
+    "description": string,    // Optional
+    "exercises": [           // Optional
+        {
+            "exerciseId": string,
+            "sets": [
+                {
+                    "weight": number,
+                    "reps": number,
+                    "isCompleted": boolean (optional)
+                }
+            ],
+            "order": number
+        }
+    ],
+    "isPublic": boolean      // Optional
+}
+
+Response (200 OK):
+{
+    "success": true,
+    "routine": {
+        "id": string,
+        "name": string,
+        "description": string,
+        "exercises": [
+            {
+                "exerciseId": string,
+                "sets": [
+                    {
+                        "weight": number,
+                        "reps": number,
+                        "isCompleted": boolean
+                    }
+                ],
+                "order": number
+            }
+        ],
+        "createdBy": string,
+        "isPublic": boolean,
+        "likes": string[],
+        "createdAt": string,
+        "updatedAt": string
+    }
+}
+
+Error Responses:
+- 400 Bad Request:
+{
+    "success": false,
+    "error": "Invalid routine input",
+    "code": "INVALID_INPUT"
+}
+
+- 404 Not Found:
+{
+    "success": false,
+    "error": "Routine not found",
+    "code": "ROUTINE_NOT_FOUND"
+}
+
+- 403 Forbidden:
+{
+    "success": false,
+    "error": "Unauthorized to update this routine",
+    "code": "UNAUTHORIZED"
+}
+
+- 500 Server Error:
+{
+    "success": false,
+    "error": "Failed to update routine",
+    "code": "UPDATE_FAILED"
+}
+
+6. DELETE ROUTINE
+----------------
+Endpoint: DELETE /:id
+Authentication: Required
+Rate Limit: Yes
+
+Response (200 OK):
+{
+    "success": true,
+    "message": "Routine deleted successfully"
+}
+
+Error Responses:
+- 404 Not Found:
+{
+    "success": false,
+    "error": "Routine not found",
+    "code": "ROUTINE_NOT_FOUND"
+}
+
+- 403 Forbidden:
+{
+    "success": false,
+    "error": "Unauthorized to delete this routine",
+    "code": "UNAUTHORIZED"
+}
+
+7. LIKE/UNLIKE ROUTINE
+---------------------
+Endpoint: POST /:id/like
+Authentication: Required
+Rate Limit: Yes
+
+Response (200 OK):
+{
+    "success": true,
+    "message": "Routine liked successfully" // or "Routine unliked successfully"
+}
+
+Error Response (404):
+{
+    "success": false,
+    "error": "Routine not found",
+    "code": "ROUTINE_NOT_FOUND"
+}
+
+NOTES:
+------
+1. All endpoints except GET require a valid JWT token in the Authorization header
+2. The like endpoint toggles the like status (if already liked, it will unlike)
+3. You can only modify (update/delete) routines that you created
+4. Only public routines are visible to other users
+5. The exerciseId must reference a valid exercise in the database
+6. Each exercise in a routine must have at least one set
+7. The order field determines the sequence of exercises in the routine
+8. All timestamps (createdAt, updatedAt) are automatically managed
+9. Pagination is available for list endpoints (GET all routines and GET user routines)
+
+EXAMPLE USAGE:
+-------------
+1. Create a new routine:
+```bash
+curl -X POST http://localhost:5000/api/routines \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Full Body Workout",
+    "description": "A complete full body workout routine",
+    "exercises": [
+      {
+        "exerciseId": "exercise_id_here",
+        "sets": [
+          {
+            "weight": 50,
+            "reps": 12,
+            "isCompleted": false
+          }
+        ],
+        "order": 1
+      }
+    ],
+    "isPublic": true
+  }'
+```
+
+2. Get all public routines with pagination:
+```bash
+curl -X GET "http://localhost:5000/api/routines?page=1&limit=10"
+```
+
+3. Like a routine:
+```bash
+curl -X POST http://localhost:5000/api/routines/routine_id_here/like \
+  -H "Authorization: Bearer YOUR_TOKEN"
+``` 

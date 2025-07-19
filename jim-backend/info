@@ -1,0 +1,1019 @@
+# JIM Backend API Testing Guide
+
+This document provides a comprehensive guide to test all endpoints of the JIM Backend API using Thunder Client in VS Code. It includes the correct headers, request bodies (with updated formats), and expected responses. The base URL is `http://localhost:5000/api`, and the provided JWT token is used for authentication. Environment variables are not supported, so all values are hardcoded.
+
+## Prerequisites
+- **Thunder Client**: Installed in VS Code.
+- **Server**: Running at `http://localhost:5000/api`.
+- **Token**: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODIwYmExMTQ4YjRmNDUwMmU2NGQ0ZDAiLCJlbWFpbCI6ImlicmFoaW1ndWxidXR0MjQyQGdtYWlsLmNvbSIsImlhdCI6MTc0NzA0OTIyOCwiZXhwIjoxNzQ3MDUwMTI4fQ.eYYCBggeGUPiC67tacd4SRPO4luNwmLfUO7eiFln1GU`
+  - **Note**: Token expires after 1 hour. If `UNAUTHORIZED` occurs, re-login:
+    - **Method**: `POST`
+    - **URL**: `http://localhost:5000/api/auth/login`
+    - **Headers**:
+      - **Key**: `Content-Type`
+        - **Value**: `application/json`
+    - **Body**:
+      ```json
+      {
+          "email": "ibrahimgulbutt242@gmail.com",
+          "password": "<your_password>"
+      }
+      ```
+    - Update the `Authorization` header with the new token.
+- **User ID**: `6820ba1148b4f4502e64d4d0`
+
+## Setup in Thunder Client
+1. **Create a Collection**: Name it `JIM Backend APIs`.
+2. **Add Folders**: `Users`, `Exercises`, `Workouts`, `Routines`, `Workout Logs`.
+3. **Track IDs**: Since environment variables are not supported, manually note IDs (e.g., `<exercise_id>`, `<workout_id>`) from `POST` responses in a notepad or Thunder Client comments.
+4. **Headers**: Add headers manually in the "Headers" tab for each request.
+
+## Testing Workflow
+1. **Users**: Test profile retrieval and updates.
+2. **Exercises**: Create an exercise, save `<exercise_id>`, then test all actions.
+3. **Workouts**: Create a workout using `<exercise_id>`, save `<workout_id>`, then test all actions.
+4. **Routines**: Create a routine using `<workout_id>`, save `<routine_id>`, then test all actions.
+5. **Workout Logs**: Create a log using `<workout_id>` and `<exercise_id>`, save `<log_id>`, then test all actions.
+6. **Errors**: Test invalid inputs, non-existent IDs, and rate limits.
+
+## Endpoints
+
+### 1. User Endpoints
+
+#### 1.1 Get User Profile
+- **Method**: `GET`
+- **URL**: `http://localhost:5000/api/users/profile`
+- **Headers**:
+  - **Key**: `Authorization`
+    - **Value**: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODIwYmExMTQ4YjRmNDUwMmU2NGQ0ZDAiLCJlbWFpbCI6ImlicmFoaW1ndWxidXR0MjQyQGdtYWlsLmNvbSIsImlhdCI6MTc0NzA0OTIyOCwiZXhwIjoxNzQ3MDUwMTI4fQ.eYYCBggeGUPiC67tacd4SRPO4luNwmLfUO7eiFln1GU`
+- **Body**: None
+- **Expected Response**: `200 OK`
+  ```json
+  {
+      "success": true,
+      "user": {
+          "id": "6820ba1148b4f4502e64d4d0",
+          "email": "ibrahimgulbutt242@gmail.com",
+          "name": "i",
+          "createdAt": "<ISO_date>",
+          "lastLogin": "<ISO_date>"
+      }
+  }
+  ```
+- **Notes**: Verify user details match login response.
+
+#### 1.2 Update User Profile
+- **Method**: `PUT`
+- **URL**: `http://localhost:5000/api/users/profile`
+- **Headers**:
+  - **Key**: `Authorization`
+    - **Value**: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODIwYmExMTQ4YjRmNDUwMmU2NGQ0ZDAiLCJlbWFpbCI6ImlicmFoaW1ndWxidXR0MjQyQGdtYWlsLmNvbSIsImlhdCI6MTc0NzA0OTIyOCwiZXhwIjoxNzQ3MDUwMTI4fQ.eYYCBggeGUPiC67tacd4SRPO4luNwmLfUO7eiFln1GU`
+  - **Key**: `Content-Type`
+    - **Value**: `application/json`
+- **Body**:
+  ```json
+  {
+      "name": "Ibrahim Gulbutt",
+      "email": "ibrahimgulbutt242@gmail.com"
+  }
+  ```
+- **Expected Response**: `200 OK`
+  ```json
+  {
+      "success": true,
+      "user": {
+          "id": "6820ba1148b4f4502e64d4d0",
+          "email": "ibrahimgulbutt242@gmail.com",
+          "name": "Ibrahim Gulbutt"
+      }
+  }
+  ```
+- **Notes**: Test invalid email (e.g., `"email": "invalid"`) to trigger `VAL001`.
+
+### 2. Exercise Endpoints
+
+#### 2.1 Get All Exercises
+- **Method**: `GET`
+- **URL**: `http://localhost:5000/api/exercises?page=1&limit=10&search=bench`
+- **Headers**:
+  - **Key**: `Authorization`
+    - **Value**: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODIwYmExMTQ4YjRmNDUwMmU2NGQ0ZDAiLCJlbWFpbCI6ImlicmFoaW1ndWxidXR0MjQyQGdtYWlsLmNvbSIsImlhdCI6MTc0NzA0OTIyOCwiZXhwIjoxNzQ3MDUwMTI4fQ.eYYCBggeGUPiC67tacd4SRPO4luNwmLfUO7eiFln1GU`
+- **Body**: None
+- **Expected Response**: `200 OK`
+  ```json
+  {
+      "success": true,
+      "exercises": [
+          {
+              "id": "6821e2bb6c82fafa61a534c5",
+              "name": "Bench Press",
+              "description": "Chest strengthening exercise",
+              "category": "Strength",
+              "muscleGroup": "Chest",
+              "equipment": "Barbell",
+              "difficulty": "intermediate",
+              "instructions": ["Lie on bench", "Lower bar to chest", "Push up"],
+              "videoUrl": "http://example.com/bench-press",
+              "imageUrl": "http://example.com/bench-press.jpg",
+              "createdBy": "6820ba1148b4f4502e64d4d0"
+          }
+      ],
+      "pagination": {
+          "total": 1,
+          "page": 1,
+          "pages": 1
+      }
+  }
+  ```
+- **Notes**: Array may be empty if no exercises exist.
+
+#### 2.2 Create Exercise
+- **Method**: `POST`
+- **URL**: `http://localhost:5000/api/exercises`
+- **Headers**:
+  - **Key**: `Authorization`
+    - **Value**: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODIwYmExMTQ4YjRmNDUwMmU2NGQ0ZDAiLCJlbWFpbCI6ImlicmFoaW1ndWxidXR0MjQyQGdtYWlsLmNvbSIsImlhdCI6MTc0NzA0OTIyOCwiZXhwIjoxNzQ3MDUwMTI4fQ.eYYCBggeGUPiC67tacd4SRPO4luNwmLfUO7eiFln1GU`
+  - **Key**: `Content-Type`
+    - **Value**: `application/json`
+- **Body**:
+  ```json
+  {
+      "name": "Bench Press",
+      "description": "Chest strengthening exercise",
+      "category": "Strength",
+      "muscleGroup": "Chest",
+      "equipment": "Barbell",
+      "difficulty": "intermediate",
+      "instructions": ["Lie on bench", "Lower bar to chest", "Push up"],
+      "videoUrl": "http://example.com/bench-press",
+      "imageUrl": "http://example.com/bench-press.jpg"
+  }
+  ```
+- **Expected Response**: `201 Created`
+  ```json
+  {
+      "success": true,
+      "exercise": {
+          "id": "6821e2bb6c82fafa61a534c5",
+          "name": "Bench Press",
+          "description": "Chest strengthening exercise",
+          "category": "Strength",
+          "muscleGroup": "Chest",
+          "equipment": "Barbell",
+          "difficulty": "intermediate",
+          "instructions": ["Lie on bench", "Lower bar to chest", "Push up"],
+          "videoUrl": "http://example.com/bench-press",
+          "imageUrl": "http://example.com/bench-press.jpg",
+          "createdBy": "6820ba1148b4f4502e64d4d0"
+      }
+  }
+  ```
+- **Notes**: Save the `id` as `<exercise_id>` (e.g., `6821e2bb6c82fafa61a534c5`). Test missing `name` to trigger `VAL001`.
+
+#### 2.3 Get Exercise by ID
+- **Method**: `GET`
+- **URL**: `http://localhost:5000/api/exercises/6821e2bb6c82fafa61a534c5`
+- **Headers**:
+  - **Key**: `Authorization`
+    - **Value**: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODIwYmExMTQ4YjRmNDUwMmU2NGQ0ZDAiLCJlbWFpbCI6ImlicmFoaW1ndWxidXR0MjQyQGdtYWlsLmNvbSIsImlhdCI6MTc0NzA0OTIyOCwiZXhwIjoxNzQ3MDUwMTI4fQ.eYYCBggeGUPiC67tacd4SRPO4luNwmLfUO7eiFln1GU`
+- **Body**: None
+- **Expected Response**: `200 OK`
+  ```json
+  {
+      "success": true,
+      "exercise": {
+          "id": "6821e2bb6c82fafa61a534c5",
+          "name": "Bench Press",
+          "description": "Chest strengthening exercise",
+          "category": "Strength",
+          "muscleGroup": "Chest",
+          "equipment": "Barbell",
+          "difficulty": "intermediate",
+          "instructions": ["Lie on bench", "Lower bar to chest", "Push up"],
+          "videoUrl": "http://example.com/bench-press",
+          "imageUrl": "http://example.com/bench-press.jpg",
+          "createdBy": "6820ba1148b4f4502e64d4d0"
+      }
+  }
+  ```
+- **Notes**: Use `<exercise_id>` from 2.2. Test invalid ID to trigger `NOT_FOUND`.
+
+#### 2.4 Update Exercise
+- **Method**: `PUT`
+- **URL**: `http://localhost:5000/api/exercises/6821e2bb6c82fafa61a534c5`
+- **Headers**:
+  - **Key**: `Authorization`
+    - **Value**: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODIwYmExMTQ4YjRmNDUwMmU2NGQ0ZDAiLCJlbWFpbCI6ImlicmFoaW1ndWxidXR0MjQyQGdtYWlsLmNvbSIsImlhdCI6MTc0NzA0OTIyOCwiZXhwIjoxNzQ3MDUwMTI4fQ.eYYCBggeGUPiC67tacd4SRPO4luNwmLfUO7eiFln1GU`
+  - **Key**: `Content-Type`
+    - **Value**: `application/json`
+- **Body**:
+  ```json
+  {
+      "name": "Incline Bench Press",
+      "difficulty": "advanced"
+  }
+  ```
+- **Expected Response**: `200 OK`
+  ```json
+  {
+      "success": true,
+      "exercise": {
+          "id": "6821e2bb6c82fafa61a534c5",
+          "name": "Incline Bench Press",
+          "description": "Chest strengthening exercise",
+          "category": "Strength",
+          "muscleGroup": "Chest",
+          "equipment": "Barbell",
+          "difficulty": "advanced",
+          "instructions": ["Lie on bench", "Lower bar to chest", "Push up"],
+          "videoUrl": "http://example.com/bench-press",
+          "imageUrl": "http://example.com/bench-press.jpg",
+          "createdBy": "6820ba1148b4f4502e64d4d0"
+      }
+  }
+  ```
+- **Notes**: Use `<exercise_id>` from 2.2.
+
+#### 2.5 Delete Exercise
+- **Method**: `DELETE`
+- **URL**: `http://localhost:5000/api/exercises/6821e2bb6c82fafa61a534c5`
+- **Headers**:
+  - **Key**: `Authorization`
+    - **Value**: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODIwYmExMTQ4YjRmNDUwMmU2NGQ0ZDAiLCJlbWFpbCI6ImlicmFoaW1ndWxidXR0MjQyQGdtYWlsLmNvbSIsImlhdCI6MTc0NzA0OTIyOCwiZXhwIjoxNzQ3MDUwMTI4fQ.eYYCBggeGUPiC67tacd4SRPO4luNwmLfUO7eiFln1GU`
+- **Body**: None
+- **Expected Response**: `200 OK`
+  ```json
+  {
+      "success": true,
+      "message": "Exercise deleted successfully"
+  }
+  ```
+- **Notes**: Use `<exercise_id>` from 2.2.
+
+### 3. Workout Endpoints
+
+#### 3.1 Get All Workouts
+- **Method**: `GET`
+- **URL**: `http://localhost:5000/api/workouts?page=1&limit=10&createdBy=6820ba1148b4f4502e64d4d0`
+- **Headers**:
+  - **Key**: `Authorization`
+    - **Value**: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODIwYmExMTQ4YjRmNDUwMmU2NGQ0ZDAiLCJlbWFpbCI6ImlicmFoaW1ndWxidXR0MjQyQGdtYWlsLmNvbSIsImlhdCI6MTc0NzA0OTIyOCwiZXhwIjoxNzQ3MDUwMTI4fQ.eYYCBggeGUPiC67tacd4SRPO4luNwmLfUO7eiFln1GU`
+- **Body**: None
+- **Expected Response**: `200 OK`
+  ```json
+  {
+      "success": true,
+      "workouts": [
+          {
+              "id": "6821ec6b682d03c7b395b63a",
+              "name": "Chest Day",
+              "description": "Workout for chest muscles",
+              "exercises": [
+                  {
+                      "exercise": "6821e2bb6c82fafa61a534c5",
+                      "sets": 3,
+                      "reps": 10,
+                      "weight": 100,
+                      "restTime": 60
+                  }
+              ],
+              "createdBy": "6820ba1148b4f4502e64d4d0",
+              "isPublic": true,
+              "likes": []
+          }
+      ],
+      "pagination": {
+          "total": 1,
+          "page": 1,
+          "pages": 1
+      }
+  }
+  ```
+- **Notes**: Array may be empty initially.
+
+#### 3.2 Create Workout
+- **Method**: `POST`
+- **URL**: `http://localhost:5000/api/workouts`
+- **Headers**:
+  - **Key**: `Authorization`
+    - **Value**: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODIwYmExMTQ4YjRmNDUwMmU2NGQ0ZDAiLCJlbWFpbCI6ImlicmFoaW1ndWxidXR0MjQyQGdtYWlsLmNvbSIsImlhdCI6MTc0NzA0OTIyOCwiZXhwIjoxNzQ3MDUwMTI4fQ.eYYCBggeGUPiC67tacd4SRPO4luNwmLfUO7eiFln1GU`
+  - **Key**: `Content-Type`
+    - **Value**: `application/json`
+- **Body**:
+  ```json
+  {
+      "name": "Chest Day",
+      "description": "Workout for chest muscles",
+      "exercises": [
+          {
+              "exercise": "6821e2bb6c82fafa61a534c5",
+              "sets": 3,
+              "reps": 10,
+              "weight": 100,
+              "restTime": 60
+          }
+      ],
+      "isPublic": true
+  }
+  ```
+- **Expected Response**: `201 Created`
+  ```json
+  {
+      "success": true,
+      "workout": {
+          "id": "6821ec6b682d03c7b395b63a",
+          "name": "Chest Day",
+          "description": "Workout for chest muscles",
+          "exercises": [
+              {
+                  "exercise": "6821e2bb6c82fafa61a534c5",
+                  "sets": 3,
+                  "reps": 10,
+                  "weight": 100,
+                  "restTime": 60
+              }
+          ],
+          "createdBy": "6820ba1148b4f4502e64d4d0",
+          "isPublic": true,
+          "likes": []
+      }
+  }
+  ```
+- **Notes**: Use `<exercise_id>` from 2.2. Save the `id` as `<workout_id>` (e.g., `6821ec6b682d03c7b395b63a`).
+
+#### 3.3 Get Workout by ID
+- **Method**: `GET`
+- **URL**: `http://localhost:5000/api/workouts/6821ec6b682d03c7b395b63a`
+- **Headers**:
+  - **Key**: `Authorization`
+    - **Value**: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODIwYmExMTQ4YjRmNDUwMmU2NGQ0ZDAiLCJlbWFpbCI6ImlicmFoaW1ndWxidXR0MjQyQGdtYWlsLmNvbSIsImlhdCI6MTc0NzA0OTIyOCwiZXhwIjoxNzQ3MDUwMTI4fQ.eYYCBggeGUPiC67tacd4SRPO4luNwmLfUO7eiFln1GU`
+- **Body**: None
+- **Expected Response**: `200 OK`
+  ```json
+  {
+      "success": true,
+      "workout": {
+          "id": "6821ec6b682d03c7b395b63a",
+          "name": "Chest Day",
+          "description": "Workout for chest muscles",
+          "exercises": [
+              {
+                  "exercise": "6821e2bb6c82fafa61a534c5",
+                  "sets": 3,
+                  "reps": 10,
+                  "weight": 100,
+                  "restTime": 60
+              }
+          ],
+          "createdBy": "6820ba1148b4f4502e64d4d0",
+          "isPublic": true,
+          "likes": []
+      }
+  }
+  ```
+- **Notes**: Use `<workout_id>` from 3.2.
+
+#### 3.4 Update Workout
+- **Method**: `PUT`
+- **URL**: `http://localhost:5000/api/workouts/6821ec6b682d03c7b395b63a`
+- **Headers**:
+  - **Key**: `Authorization`
+    - **Value**: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODIwYmExMTQ4YjRmNDUwMmU2NGQ0ZDAiLCJlbWFpbCI6ImlicmFoaW1ndWxidXR0MjQyQGdtYWlsLmNvbSIsImlhdCI6MTc0NzA0OTIyOCwiZXhwIjoxNzQ3MDUwMTI4fQ.eYYCBggeGUPiC67tacd4SRPO4luNwmLfUO7eiFln1GU`
+  - **Key**: `Content-Type`
+    - **Value**: `application/json`
+- **Body**:
+  ```json
+  {
+      "name": "Updated Chest Day",
+      "isPublic": false
+  }
+  ```
+- **Expected Response**: `200 OK`
+  ```json
+  {
+      "success": true,
+      "workout": {
+          "id": "6821ec6b682d03c7b395b63a",
+          "name": "Updated Chest Day",
+          "description": "Workout for chest muscles",
+          "exercises": [
+              {
+                  "exercise": "6821e2bb6c82fafa61a534c5",
+                  "sets": 3,
+                  "reps": 10,
+                  "weight": 100,
+                  "restTime": 60
+              }
+          ],
+          "createdBy": "6820ba1148b4f4502e64d4d0",
+          "isPublic": false,
+          "likes": []
+      }
+  }
+  ```
+- **Notes**: Use `<workout_id>` from 3.2.
+
+#### 3.5 Delete Workout
+- **Method**: `DELETE`
+- **URL**: `http://localhost:5000/api/workouts/6821ec6b682d03c7b395b63a`
+- **Headers**:
+  - **Key**: `Authorization`
+    - **Value**: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODIwYmExMTQ4YjRmNDUwMmU2NGQ0ZDAiLCJlbWFpbCI6ImlicmFoaW1ndWxidXR0MjQyQGdtYWlsLmNvbSIsImlhdCI6MTc0NzA0OTIyOCwiZXhwIjoxNzQ3MDUwMTI4fQ.eYYCBggeGUPiC67tacd4SRPO4luNwmLfUO7eiFln1GU`
+- **Body**: None
+- **Expected Response**: `200 OK`
+  ```json
+  {
+      "success": true,
+      "message": "Workout deleted successfully"
+  }
+  ```
+- **Notes**: Use `<workout_id>` from 3.2.
+
+#### 3.6 Like Workout
+- **Method**: `POST`
+- **URL**: `http://localhost:5000/api/workouts/6821ec6b682d03c7b395b63a/like`
+- **Headers**:
+  - **Key**: `Authorization`
+    - **Value**: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODIwYmExMTQ4YjRmNDUwMmU2NGQ0ZDAiLCJlbWFpbCI6ImlicmFoaW1ndWxidXR0MjQyQGdtYWlsLmNvbSIsImlhdCI6MTc0NzA0OTIyOCwiZXhwIjoxNzQ3MDUwMTI4fQ.eYYCBggeGUPiC67tacd4SRPO4luNwmLfUO7eiFln1GU`
+- **Body**: None
+- **Expected Response**: `200 OK`
+  ```json
+  {
+      "success": true,
+      "message": "Workout liked successfully"
+  }
+  ```
+- **Notes**: Use `<workout_id>` from 3.2.
+
+#### 3.7 Get User Workouts
+- **Method**: `GET`
+- **URL**: `http://localhost:5000/api/workouts/user/6820ba1148b4f4502e64d4d0?page=1&limit=10`
+- **Headers**:
+  - **Key**: `Authorization`
+    - **Value**: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODIwYmExMTQ4YjRmNDUwMmU2NGQ0ZDAiLCJlbWFpbCI6ImlicmFoaW1ndWxidXR0MjQyQGdtYWlsLmNvbSIsImlhdCI6MTc0NzA0OTIyOCwiZXhwIjoxNzQ3MDUwMTI4fQ.eYYCBggeGUPiC67tacd4SRPO4luNwmLfUO7eiFln1GU`
+- **Body**: None
+- **Expected Response**: `200 OK`
+  ```json
+  {
+      "success": true,
+      "workouts": [
+          {
+              "id": "6821ec6b682d03c7b395b63a",
+              "name": "Chest Day",
+              "description": "Workout for chest muscles",
+              "exercises": [
+                  {
+                      "exercise": "6821e2bb6c82fafa61a534c5",
+                      "sets": 3,
+                      "reps": 10,
+                      "weight": 100,
+                      "restTime": 60
+                  }
+              ],
+              "createdBy": "6820ba1148b4f4502e64d4d0",
+              "isPublic": true,
+              "likes": []
+          }
+      ],
+      "pagination": {
+          "total": 1,
+          "page": 1,
+          "pages": 1
+      }
+  }
+  ```
+- **Notes**: Lists workouts created by the user.
+
+### 4. Routine Endpoints
+
+#### 4.1 Get All Routines
+- **Method**: `GET`
+- **URL**: `http://localhost:5000/api/routines?page=1&limit=10&createdBy=6820ba1148b4f4502e64d4d0`
+- **Headers**:
+  - **Key**: `Authorization`
+    - **Value**: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODIwYmExMTQ4YjRmNDUwMmU2NGQ0ZDAiLCJlbWFpbCI6ImlicmFoaW1ndWxidXR0MjQyQGdtYWlsLmNvbSIsImlhdCI6MTc0NzA0OTIyOCwiZXhwIjoxNzQ3MDUwMTI4fQ.eYYCBggeGUPiC67tacd4SRPO4luNwmLfUO7eiFln1GU`
+- **Body**: None
+- **Expected Response**: `200 OK`
+  ```json
+  {
+      "success": true,
+      "routines": [
+          {
+              "id": "6821f25ee6a5e9a84c41c598",
+              "name": "Weekly Routine",
+              "description": "7-day workout plan",
+              "workouts": [
+                  {
+                      "workout": "6821ec6b682d03c7b395b63a",
+                      "day": 1,
+                      "order": 1
+                  }
+              ],
+              "createdBy": "6820ba1148b4f4502e64d4d0",
+              "isPublic": true,
+              "likes": []
+          }
+      ],
+      "pagination": {
+          "total": 1,
+          "page": 1,
+          "pages": 1
+      }
+  }
+  ```
+- **Notes**: Array may be empty initially.
+
+#### 4.2 Create Routine
+- **Method**: `POST`
+- **URL**: `http://localhost:5000/api/routines`
+- **Headers**:
+  - **Key**: `Authorization`
+    - **Value**: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODIwYmExMTQ4YjRmNDUwMmU2NGQ0ZDAiLCJlbWFpbCI6ImlicmFoaW1ndWxidXR0MjQyQGdtYWlsLmNvbSIsImlhdCI6MTc0NzA0OTIyOCwiZXhwIjoxNzQ3MDUwMTI4fQ.eYYCBggeGUPiC67tacd4SRPO4luNwmLfUO7eiFln1GU`
+  - **Key**: `Content-Type`
+    - **Value**: `application/json`
+- **Body**:
+  ```json
+  {
+      "name": "Weekly Routine",
+      "description": "7-day workout plan",
+      "workouts": [
+          {
+              "workout": "6821ec6b682d03c7b395b63a",
+              "day": 1,
+              "order": 1
+          }
+      ],
+      "isPublic": true
+  }
+  ```
+- **Expected Response**: `201 Created`
+  ```json
+  {
+      "success": true,
+      "routine": {
+          "id": "6821f25ee6a5e9a84c41c598",
+          "name": "Weekly Routine",
+          "description": "7-day workout plan",
+          "workouts": [
+              {
+                  "workout": "6821ec6b682d03c7b395b63a",
+                  "day": 1,
+                  "order": 1
+              }
+          ],
+          "createdBy": "6820ba1148b4f4502e64d4d0",
+          "isPublic": true,
+          "likes": []
+      }
+  }
+  ```
+- **Notes**: Use `<workout_id>` from 3.2. Save the `id` as `<routine_id>` (e.g., `6821f25ee6a5e9a84c41c598`).
+
+#### 4.3 Get Routine by ID
+- **Method**: `GET`
+- **URL**: `http://localhost:5000/api/routines/6821f25ee6a5e9a84c41c598`
+- **Headers**:
+  - **Key**: `Authorization`
+    - **Value**: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODIwYmExMTQ4YjRmNDUwMmU2NGQ0ZDAiLCJlbWFpbCI6ImlicmFoaW1ndWxidXR0MjQyQGdtYWlsLmNvbSIsImlhdCI6MTc0NzA0OTIyOCwiZXhwIjoxNzQ3MDUwMTI4fQ.eYYCBggeGUPiC67tacd4SRPO4luNwmLfUO7eiFln1GU`
+- **Body**: None
+- **Expected Response**: `200 OK`
+  ```json
+  {
+      "success": true,
+      "routine": {
+          "id": "6821f25ee6a5e9a84c41c598",
+          "name": "Weekly Routine",
+          "description": "7-day workout plan",
+          "workouts": [
+              {
+                  "workout": "6821ec6b682d03c7b395b63a",
+                  "day": 1,
+                  "order": 1
+              }
+          ],
+          "createdBy": "6820ba1148b4f4502e64d4d0",
+          "isPublic": true,
+          "likes": []
+      }
+  }
+  ```
+- **Notes**: Use `<routine_id>` from 4.2.
+
+#### 4.4 Update Routine
+- **Method**: `PUT`
+- **URL**: `http://localhost:5000/api/routines/6821f25ee6a5e9a84c41c598`
+- **Headers**:
+  - **Key**: `Authorization`
+    - **Value**: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODIwYmExMTQ4YjRmNDUwMmU2NGQ0ZDAiLCJlbWFpbCI6ImlicmFoaW1ndWxidXR0MjQyQGdtYWlsLmNvbSIsImlhdCI6MTc0NzA0OTIyOCwiZXhwIjoxNzQ3MDUwMTI4fQ.eYYCBggeGUPiC67tacd4SRPO4luNwmLfUO7eiFln1GU`
+  - **Key**: `Content-Type`
+    - **Value**: `application/json`
+- **Body**:
+  ```json
+  {
+      "name": "Updated Weekly Routine",
+      "isPublic": false
+  }
+  ```
+- **Expected Response**: `200 OK`
+  ```json
+  {
+      "success": true,
+      "routine": {
+          "id": "6821f25ee6a5e9a84c41c598",
+          "name": "Updated Weekly Routine",
+          "description": "7-day workout plan",
+          "workouts": [
+              {
+                  "workout": "6821ec6b682d03c7b395b63a",
+                  "day": 1,
+                  "order": 1
+              }
+          ],
+          "createdBy": "6820ba1148b4f4502e64d4d0",
+          "isPublic": false,
+          "likes": []
+      }
+  }
+  ```
+- **Notes**: Use `<routine_id>` from 4.2.
+
+#### 4.5 Delete Routine
+- **Method**: `DELETE`
+- **URL**: `http://localhost:5000/api/routines/6821f25ee6a5e9a84c41c598`
+- **Headers**:
+  - **Key**: `Authorization`
+    - **Value**: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODIwYmExMTQ4YjRmNDUwMmU2NGQ0ZDAiLCJlbWFpbCI6ImlicmFoaW1ndWxidXR0MjQyQGdtYWlsLmNvbSIsImlhdCI6MTc0NzA0OTIyOCwiZXhwIjoxNzQ3MDUwMTI4fQ.eYYCBggeGUPiC67tacd4SRPO4luNwmLfUO7eiFln1GU`
+- **Body**: None
+- **Expected Response**: `200 OK`
+  ```json
+  {
+      "success": true,
+      "message": "Routine deleted successfully"
+  }
+  ```
+- **Notes**: Use `<routine_id>` from 4.2.
+
+#### 4.6 Like Routine
+- **Method**: `POST`
+- **URL**: `http://localhost:5000/api/routines/6821f25ee6a5e9a84c41c598/like`
+- **Headers**:
+  - **Key**: `Authorization`
+    - **Value**: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODIwYmExMTQ4YjRmNDUwMmU2NGQ0ZDAiLCJlbWFpbCI6ImlicmFoaW1ndWxidXR0MjQyQGdtYWlsLmNvbSIsImlhdCI6MTc0NzA0OTIyOCwiZXhwIjoxNzQ3MDUwMTI4fQ.eYYCBggeGUPiC67tacd4SRPO4luNwmLfUO7eiFln1GU`
+- **Body**: None
+- **Expected Response**: `200 OK`
+  ```json
+  {
+      "success": true,
+      "message": "Routine liked successfully"
+  }
+  ```
+- **Notes**: Use `<routine_id>` from 4.2.
+
+#### 4.7 Get User Routines
+- **Method**: `GET`
+- **URL**: `http://localhost:5000/api/routines/user/6820ba1148b4f4502e64d4d0?page=1&limit=10`
+- **Headers**:
+  - **Key**: `Authorization`
+    - **Value**: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODIwYmExMTQ4YjRmNDUwMmU2NGQ0ZDAiLCJlbWFpbCI6ImlicmFoaW1ndWxidXR0MjQyQGdtYWlsLmNvbSIsImlhdCI6MTc0NzA0OTIyOCwiZXhwIjoxNzQ3MDUwMTI4fQ.eYYCBggeGUPiC67tacd4SRPO4luNwmLfUO7eiFln1GU`
+- **Body**: None
+- **Expected Response**: `200 OK`
+  ```json
+  {
+      "success": true,
+      "routines": [
+          {
+              "id": "6821f25ee6a5e9a84c41c598",
+              "name": "Weekly Routine",
+              "description": "7-day workout plan",
+              "workouts": [
+                  {
+                      "workout": "6821ec6b682d03c7b395b63a",
+                      "day": 1,
+                      "order": 1
+                  }
+              ],
+              "createdBy": "6820ba1148b4f4502e64d4d0",
+              "isPublic": true,
+              "likes": []
+          }
+      ],
+      "pagination": {
+          "total": 1,
+          "page": 1,
+          "pages": 1
+      }
+  }
+  ```
+- **Notes**: Lists routines created by the user.
+
+### 5. Workout Log Endpoints
+
+#### 5.1 Get All Workout Logs
+- **Method**: `GET`
+- **URL**: `http://localhost:5000/api/workout-logs?page=1&limit=10`
+- **Headers**:
+  - **Key**: `Authorization`
+    - **Value**: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODIwYmExMTQ4YjRmNDUwMmU2NGQ0ZDAiLCJlbWFpbCI6ImlicmFoaW1ndWxidXR0MjQyQGdtYWlsLmNvbSIsImlhdCI6MTc0NzA0OTIyOCwiZXhwIjoxNzQ3MDUwMTI4fQ.eYYCBggeGUPiC67tacd4SRPO4luNwmLfUO7eiFln1GU`
+- **Body**: None
+- **Expected Response**: `200 OK`
+  ```json
+  {
+      "success": true,
+      "logs": [
+          {
+              "id": "6821f4914af4407706a57ac9",
+              "user": "6820ba1148b4f4502e64d4d0",
+              "workout": "6821ec6b682d03c7b395b63a",
+              "date": "2024-03-19T10:00:00.000Z",
+              "exercises": [
+                  {
+                      "exercise": "6821e2bb6c82fafa61a534c5",
+                      "sets": [
+                          {
+                              "reps": 10,
+                              "weight": 100,
+                              "duration": 30,
+                              "completed": true
+                          }
+                      ]
+                  }
+              ],
+              "notes": "Felt strong today!",
+              "duration": 45
+          }
+      ],
+      "pagination": {
+          "total": 1,
+          "page": 1,
+          "pages": 1
+      }
+  }
+  ```
+- **Notes**: Array may be empty initially.
+
+#### 5.2 Create Workout Log
+- **Method**: `POST`
+- **URL**: `http://localhost:5000/api/workout-logs`
+- **Headers**:
+  - **Key**: `Authorization`
+    - **Value**: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODIwYmExMTQ4YjRmNDUwMmU2NGQ0ZDAiLCJlbWFpbCI6ImlicmFoaW1ndWxidXR0MjQyQGdtYWlsLmNvbSIsImlhdCI6MTc0NzA0OTIyOCwiZXhwIjoxNzQ3MDUwMTI4fQ.eYYCBggeGUPiC67tacd4SRPO4luNwmLfUO7eiFln1GU`
+  - **Key**: `Content-Type`
+    - **Value**: `application/json`
+- **Body**:
+  ```json
+  {
+      "workout": "6821ec6b682d03c7b395b63a",
+      "date": "2024-03-19T10:00:00Z",
+      "exercises": [
+          {
+              "exercise": "6821e2bb6c82fafa61a534c5",
+              "sets": [
+                  {
+                      "reps": 10,
+                      "weight": 100,
+                      "duration": 30,
+                      "completed": true
+                  }
+              ]
+          }
+      ],
+      "duration": 45,
+      "notes": "Felt strong today!"
+  }
+  ```
+- **Expected Response**: `201 Created`
+  ```json
+  {
+      "success": true,
+      "log": {
+          "id": "6821f4914af4407706a57ac9",
+          "user": "6820ba1148b4f4502e64d4d0",
+          "workout": "6821ec6b682d03c7b395b63a",
+          "date": "2024-03-19T10:00:00.000Z",
+          "exercises": [
+              {
+                  "exercise": "6821e2bb6c82fafa61a534c5",
+                  "sets": [
+                      {
+                          "reps": 10,
+                          "weight": 100,
+                          "duration": 30,
+                          "completed": true
+                      }
+                  ]
+              }
+          ],
+          "notes": "Felt strong today!",
+          "duration": 45
+      }
+  }
+  ```
+- **Notes**: Use `<workout_id>` from 3.2 and `<exercise_id>` from 2.2. Save the `id` as `<log_id>` (e.g., `6821f4914af4407706a57ac9`). `date` must be ISO format.
+
+#### 5.3 Get Workout Log by ID
+- **Method**: `GET`
+- **URL**: `http://localhost:5000/api/workout-logs/6821f4914af4407706a57ac9`
+- **Headers**:
+  - **Key**: `Authorization`
+    - **Value**: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODIwYmExMTQ4YjRmNDUwMmU2NGQ0ZDAiLCJlbWFpbCI6ImlicmFoaW1ndWxidXR0MjQyQGdtYWlsLmNvbSIsImlhdCI6MTc0NzA0OTIyOCwiZXhwIjoxNzQ3MDUwMTI4fQ.eYYCBggeGUPiC67tacd4SRPO4luNwmLfUO7eiFln1GU`
+- **Body**: None
+- **Expected Response**: `200 OK`
+  ```json
+  {
+      "success": true,
+      "log": {
+          "id": "6821f4914af4407706a57ac9",
+          "user": "6820ba1148b4f4502e64d4d0",
+          "workout": "6821ec6b682d03c7b395b63a",
+          "date": "2024-03-19T10:00:00.000Z",
+          "exercises": [
+              {
+                  "exercise": "6821e2bb6c82fafa61a534c5",
+                  "sets": [
+                      {
+                          "reps": 10,
+                          "weight": 100,
+                          "duration": 30,
+                          "completed": true
+                      }
+                  ]
+              }
+          ],
+          "notes": "Felt strong today!",
+          "duration": 45
+      }
+  }
+  ```
+- **Notes**: Use `<log_id>` from 5.2.
+
+#### 5.4 Update Workout Log
+- **Method**: `PUT`
+- **URL**: `http://localhost:5000/api/workout-logs/6821f4914af4407706a57ac9`
+- **Headers**:
+  - **Key**: `Authorization`
+    - **Value**: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODIwYmExMTQ4YjRmNDUwMmU2NGQ0ZDAiLCJlbWFpbCI6ImlicmFoaW1ndWxidXR0MjQyQGdtYWlsLmNvbSIsImlhdCI6MTc0NzA0OTIyOCwiZXhwIjoxNzQ3MDUwMTI4fQ.eYYCBggeGUPiC67tacd4SRPO4luNwmLfUO7eiFln1GU`
+  - **Key**: `Content-Type`
+    - **Value**: `application/json`
+- **Body**:
+  ```json
+  {
+      "notes": "Updated: Felt even stronger!",
+      "duration": 50
+  }
+  ```
+- **Expected Response**: `200 OK`
+  ```json
+  {
+      "success": true,
+      "log": {
+          "id": "6821f4914af4407706a57ac9",
+          "user": "6820ba1148b4f4502e64d4d0",
+          "workout": "6821ec6b682d03c7b395b63a",
+          "date": "2024-03-19T10:00:00.000Z",
+          "exercises": [
+              {
+                  "exercise": "6821e2bb6c82fafa61a534c5",
+                  "sets": [
+                      {
+                          "reps": 10,
+                          "weight": 100,
+                          "duration": 30,
+                          "completed": true
+                      }
+                  ]
+              }
+          ],
+          "notes": "Updated: Felt even stronger!",
+          "duration": 50
+      }
+  }
+  ```
+- **Notes**: Use `<log_id>` from 5.2.
+
+#### 5.5 Delete Workout Log
+- **Method**: `DELETE`
+- **URL**: `http://localhost:5000/api/workout-logs/6821f4914af4407706a57ac9`
+- **Headers**:
+  - **Key**: `Authorization`
+    - **Value**: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODIwYmExMTQ4YjRmNDUwMmU2NGQ0ZDAiLCJlbWFpbCI6ImlicmFoaW1ndWxidXR0MjQyQGdtYWlsLmNvbSIsImlhdCI6MTc0NzA0OTIyOCwiZXhwIjoxNzQ3MDUwMTI4fQ.eYYCBggeGUPiC67tacd4SRPO4luNwmLfUO7eiFln1GU`
+- **Body**: None
+- **Expected Response**: `200 OK`
+  ```json
+  {
+      "success": true,
+      "message": "Workout log deleted successfully"
+  }
+  ```
+- **Notes**: Use `<log_id>` from 5.2.
+
+#### 5.6 Get User Workout Logs
+- **Method**: `GET`
+- **URL**: `http://localhost:5000/api/workout-logs/user/6820ba1148b4f4502e64d4d0?page=1&limit=10`
+- **Headers**:
+  - **Key**: `Authorization`
+    - **Value**: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODIwYmExMTQ4YjRmNDUwMmU2NGQ0ZDAiLCJlbWFpbCI6ImlicmFoaW1ndWxidXR0MjQyQGdtYWlsLmNvbSIsImlhdCI6MTc0NzA0OTIyOCwiZXhwIjoxNzQ3MDUwMTI4fQ.eYYCBggeGUPiC67tacd4SRPO4luNwmLfUO7eiFln1GU`
+- **Body**: None
+- **Expected Response**: `200 OK`
+  ```json
+  {
+      "success": true,
+      "logs": [
+          {
+              "id": "6821f4914af4407706a57ac9",
+              "user": "6820ba1148b4f4502e64d4d0",
+              "workout": "6821ec6b682d03c7b395b63a",
+              "date": "2024-03-19T10:00:00.000Z",
+              "exercises": [
+                  {
+                      "exercise": "6821e2bb6c82fafa61a534c5",
+                      "sets": [
+                          {
+                              "reps": 10,
+                              "weight": 100,
+                              "duration": 30,
+                              "completed": true
+                          }
+                      ]
+                  }
+              ],
+              "notes": "Felt strong today!",
+              "duration": 45
+          }
+      ],
+      "pagination": {
+          "total": 1,
+          "page": 1,
+          "pages": 1
+      }
+  }
+  ```
+- **Notes**: Lists logs for the user.
+
+#### 5.7 Get Workout Stats
+- **Method**: `GET`
+- **URL**: `http://localhost:5000/api/workout-logs/stats?startDate=2025-05-01&endDate=2025-05-12`
+- **Headers**:
+  - **Key**: `Authorization`
+    - **Value**: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODIwYmExMTQ4YjRmNDUwMmU2NGQ0ZDAiLCJlbWFpbCI6ImlicmFoaW1ndWxidXR0MjQyQGdtYWlsLmNvbSIsImlhdCI6MTc0NzA0OTIyOCwiZXhwIjoxNzQ3MDUwMTI4fQ.eYYCBggeGUPiC67tacd4SRPO4luNwmLfUO7eiFln1GU`
+- **Body**: None
+- **Expected Response**: `200 OK`
+  ```json
+  {
+      "success": true,
+      "stats": {
+          "totalWorkouts": 1,
+          "totalDuration": 45,
+          "exercisesCompleted": 1,
+          "averageWorkoutsPerWeek": 0.5,
+          "mostFrequentExercises": ["Bench Press"],
+          "progressByExercise": [
+              {
+                  "exerciseId": "6821e2bb6c82fafa61a534c5",
+                  "name": "Bench Press",
+                  "totalSets": 1,
+                  "totalReps": 10,
+                  "maxWeight": 100
+              }
+          ]
+      }
+  }
+  ```
+- **Notes**: Stats reflect logs in the date range.
+
+## Error Testing
+1. **Validation Errors**:
+   - **Example**: `POST http://localhost:5000/api/exercises`
+     - **Body**: `{"description": "Test"}` (missing `name`)
+     - **Headers**:
+       - **Key**: `Authorization`
+         - **Value**: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODIwYmExMTQ4YjRmNDUwMmU2NGQ0ZDAiLCJlbWFpbCI6ImlicmFoaW1ndWxidXR0MjQyQGdtYWlsLmNvbSIsImlhdCI6MTc0NzA0OTIyOCwiZXhwIjoxNzQ3MDUwMTI4fQ.eYYCBggeGUPiC67tacd4SRPO4luNwmLfUO7eiFln1GU`
+       - **Key**: `Content-Type`
+         - **Value**: `application/json`
+     - **Expected**: `400 Bad Request`, `code: "VAL001"`
+
+2. **Non-existent Resources**:
+   - **Example**: `GET http://localhost:5000/api/exercises/123`
+     - **Headers**:
+       - **Key**: `Authorization`
+         - **Value**: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODIwYmExMTQ4YjRmNDUwMmU2NGQ0ZDAiLCJlbWFpbCI6ImlicmFoaW1ndWxidXR0MjQyQGdtYWlsLmNvbSIsImlhdCI6MTc0NzA0OTIyOCwiZXhwIjoxNzQ3MDUwMTI4fQ.eYYCBggeGUPiC67tacd4SRPO4luNwmLfUO7eiFln1GU`
+     - **Expected**: `404 Not Found`, `code: "NOT_FOUND"`
+
+3. **Unauthorized**:
+   - **Example**: `GET http://localhost:5000/api/users/profile` without `Authorization` header
+     - **Expected**: `401 Unauthorized`, `code: "UNAUTHORIZED"`
+
+4. **Rate Limits**:
+   - **Example**: Send 100+ requests to `POST http://localhost:5000/api/exercises` within an hour
+     - **Headers**: Same as 2.2
+     - **Expected**: `429 Too Many Requests`, `code: "RATE001"`
+
+## Notes
+- **Token Expiry**: Re-login if `UNAUTHORIZED` occurs (see Prerequisites).
+- **Dependencies**: Create resources in order: exercises → workouts → routines → logs.
+- **IDs**: Replace `<exercise_id>`, `<workout_id>`, `<routine_id>`, `<log_id>` with actual IDs from `POST` responses.
+- **Cookies**: Thunder Client handles HTTP-only `refreshToken` cookies automatically.
+- **Rate Limits**: Most endpoints have a 100/hour limit.
+- **Response Validation**: Use Thunder Client’s "Tests" tab to check `success: true`:
+  ```javascript
+  tc.expect(tc.response.json.success).to.equal(true);
+  ```

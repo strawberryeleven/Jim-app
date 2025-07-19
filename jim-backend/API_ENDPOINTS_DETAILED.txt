@@ -1,0 +1,1102 @@
+JIM BACKEND API ENDPOINTS DETAILED DOCUMENTATION
+=============================================
+
+Base URL: http://localhost:3000/api
+
+Authentication
+-------------
+All protected routes require a Bearer token in the Authorization header:
+Authorization: Bearer <access_token>
+
+Cookies
+-------
+The API uses HTTP-only cookies for refresh tokens:
+- refreshToken: HTTP-only cookie for token refresh
+- Secure in production
+- 7-day expiration
+
+1. Authentication Endpoints
+--------------------------
+
+1.1 Register User
+----------------
+POST /auth/register
+
+Headers:
+- Content-Type: application/json
+
+Request Body:
+{
+    "email": string,      // Required, valid email format
+    "password": string,   // Required, min 6 characters
+    "name": string       // Required, min 2 characters
+}
+
+Response (201 Created):
+{
+    "success": true,
+    "user": {
+        "id": string,
+        "email": string,
+        "name": string
+    },
+    "token": string      // JWT access token
+}
+
+Error Responses:
+- 400 Bad Request: Email already exists
+{
+    "success": false,
+    "error": "Email already exists",
+    "code": "AUTH002"
+}
+
+1.2 Login
+---------
+POST /auth/login
+
+Headers:
+- Content-Type: application/json
+
+Request Body:
+{
+    "email": string,     // Required
+    "password": string   // Required
+}
+
+Response (200 OK):
+{
+    "success": true,
+    "user": {
+        "id": string,
+        "email": string,
+        "name": string
+    },
+    "token": string      // JWT access token
+}
+
+Error Responses:
+- 401 Unauthorized: Invalid credentials
+{
+    "success": false,
+    "error": "Invalid credentials",
+    "code": "AUTH001"
+}
+- 404 Not Found: Account not found
+{
+    "success": false,
+    "error": "Account not found",
+    "code": "AUTH005"
+}
+- 403 Forbidden: Account inactive
+{
+    "success": false,
+    "error": "Account is inactive",
+    "code": "AUTH006"
+}
+
+1.3 Logout
+----------
+POST /auth/logout
+
+Headers:
+- Authorization: Bearer <token>
+
+Response (200 OK):
+{
+    "success": true,
+    "message": "Logged out successfully"
+}
+
+1.4 Verify Token
+---------------
+GET /auth/verify
+
+Headers:
+- Authorization: Bearer <token>
+
+Response (200 OK):
+{
+    "success": true,
+    "user": {
+        "id": string,
+        "email": string,
+        "name": string
+    }
+}
+
+Error Response:
+- 404 Not Found: Account not found
+{
+    "success": false,
+    "error": "Account not found",
+    "code": "AUTH005"
+}
+
+2. User Endpoints
+----------------
+
+2.1 Get User Profile
+-------------------
+GET /users/profile
+
+Headers:
+- Authorization: Bearer <token>
+
+Response (200 OK):
+{
+    "success": true,
+    "user": {
+        "id": string,
+        "email": string,
+        "name": string,
+        "createdAt": string (ISO date),
+        "lastLogin": string (ISO date)
+    }
+}
+
+2.2 Update User Profile
+----------------------
+PUT /users/profile
+
+Headers:
+- Authorization: Bearer <token>
+- Content-Type: application/json
+
+Request Body:
+{
+    "name": string,      // Optional
+    "email": string      // Optional, valid email format
+}
+
+Response (200 OK):
+{
+    "success": true,
+    "user": {
+        "id": string,
+        "email": string,
+        "name": string
+    }
+}
+
+3. Exercise Endpoints
+--------------------
+
+3.1 Get All Exercises
+--------------------
+GET /exercises
+
+Headers:
+- Authorization: Bearer <token>
+
+Query Parameters:
+- page: number (default: 1)
+- limit: number (default: 10)
+- search: string (optional)
+- muscleGroup: string (optional)
+- equipment: string (optional)
+- difficulty: string (optional)
+
+Response (200 OK):
+{
+    "success": true,
+    "exercises": [
+        {
+            "id": string,
+            "name": string,
+            "description": string,
+            "muscleGroup": string,
+            "equipment": string,
+            "difficulty": string,
+            "instructions": string[],
+            "videoUrl": string (optional),
+            "imageUrl": string (optional)
+        }
+    ],
+    "pagination": {
+        "total": number,
+        "page": number,
+        "pages": number
+    }
+}
+
+3.2 Create Exercise
+------------------
+POST /exercises
+
+Headers:
+- Authorization: Bearer <token>
+- Content-Type: application/json
+
+Request Body:
+{
+    "name": string,           // Required
+    "description": string,    // Required
+    "muscleGroup": string,    // Required
+    "equipment": string,      // Required
+    "difficulty": string,     // Required
+    "instructions": string[], // Required
+    "videoUrl": string,       // Optional
+    "imageUrl": string        // Optional
+}
+
+Response (201 Created):
+{
+    "success": true,
+    "exercise": {
+        "id": string,
+        "name": string,
+        "description": string,
+        "muscleGroup": string,
+        "equipment": string,
+        "difficulty": string,
+        "instructions": string[],
+        "videoUrl": string,
+        "imageUrl": string,
+        "createdBy": string (user ID)
+    }
+}
+
+3.3 Get Exercise by ID
+---------------------
+GET /exercises/:id
+
+Headers:
+- Authorization: Bearer <token>
+
+Response (200 OK):
+{
+    "success": true,
+    "exercise": {
+        "id": string,
+        "name": string,
+        "description": string,
+        "muscleGroup": string,
+        "equipment": string,
+        "difficulty": string,
+        "instructions": string[],
+        "videoUrl": string,
+        "imageUrl": string,
+        "createdBy": string (user ID)
+    }
+}
+
+3.4 Update Exercise
+------------------
+PUT /exercises/:id
+
+Headers:
+- Authorization: Bearer <token>
+- Content-Type: application/json
+
+Request Body:
+{
+    "name": string,           // Optional
+    "description": string,    // Optional
+    "muscleGroup": string,    // Optional
+    "equipment": string,      // Optional
+    "difficulty": string,     // Optional
+    "instructions": string[], // Optional
+    "videoUrl": string,       // Optional
+    "imageUrl": string        // Optional
+}
+
+Response (200 OK):
+{
+    "success": true,
+    "exercise": {
+        "id": string,
+        "name": string,
+        "description": string,
+        "muscleGroup": string,
+        "equipment": string,
+        "difficulty": string,
+        "instructions": string[],
+        "videoUrl": string,
+        "imageUrl": string,
+        "createdBy": string (user ID)
+    }
+}
+
+3.5 Delete Exercise
+------------------
+DELETE /exercises/:id
+
+Headers:
+- Authorization: Bearer <token>
+
+Response (200 OK):
+{
+    "success": true,
+    "message": "Exercise deleted successfully"
+}
+
+4. Workout Endpoints
+-------------------
+
+4.1 Get All Workouts
+-------------------
+GET /workouts
+
+Headers:
+- Authorization: Bearer <token>
+
+Query Parameters:
+- page: number (default: 1)
+- limit: number (default: 10)
+- search: string (optional)
+- createdBy: string (optional, user ID)
+
+Response (200 OK):
+{
+    "success": true,
+    "workouts": [
+        {
+            "id": string,
+            "name": string,
+            "description": string,
+            "exercises": [
+                {
+                    "exerciseId": string,
+                    "sets": number,
+                    "reps": number,
+                    "weight": number,
+                    "restTime": number
+                }
+            ],
+            "createdBy": string (user ID),
+            "isPublic": boolean,
+            "likes": string[] (user IDs)
+        }
+    ],
+    "pagination": {
+        "total": number,
+        "page": number,
+        "pages": number
+    }
+}
+
+4.2 Create Workout
+-----------------
+POST /workouts
+
+Headers:
+- Authorization: Bearer <token>
+- Content-Type: application/json
+
+Request Body:
+{
+    "name": string,           // Required
+    "description": string,    // Required
+    "exercises": [           // Required, at least one exercise
+        {
+            "exerciseId": string,
+            "sets": number,
+            "reps": number,
+            "weight": number,
+            "restTime": number
+        }
+    ],
+    "isPublic": boolean      // Optional, default: false
+}
+
+Response (201 Created):
+{
+    "success": true,
+    "workout": {
+        "id": string,
+        "name": string,
+        "description": string,
+        "exercises": [
+            {
+                "exerciseId": string,
+                "sets": number,
+                "reps": number,
+                "weight": number,
+                "restTime": number
+            }
+        ],
+        "createdBy": string (user ID),
+        "isPublic": boolean,
+        "likes": []
+    }
+}
+
+4.3 Get Workout by ID
+--------------------
+GET /workouts/:id
+
+Headers:
+- Authorization: Bearer <token>
+
+Response (200 OK):
+{
+    "success": true,
+    "workout": {
+        "id": string,
+        "name": string,
+        "description": string,
+        "exercises": [
+            {
+                "exerciseId": string,
+                "sets": number,
+                "reps": number,
+                "weight": number,
+                "restTime": number
+            }
+        ],
+        "createdBy": string (user ID),
+        "isPublic": boolean,
+        "likes": string[] (user IDs)
+    }
+}
+
+4.4 Update Workout
+-----------------
+PUT /workouts/:id
+
+Headers:
+- Authorization: Bearer <token>
+- Content-Type: application/json
+
+Request Body:
+{
+    "name": string,           // Optional
+    "description": string,    // Optional
+    "exercises": [           // Optional
+        {
+            "exerciseId": string,
+            "sets": number,
+            "reps": number,
+            "weight": number,
+            "restTime": number
+        }
+    ],
+    "isPublic": boolean      // Optional
+}
+
+Response (200 OK):
+{
+    "success": true,
+    "workout": {
+        "id": string,
+        "name": string,
+        "description": string,
+        "exercises": [
+            {
+                "exerciseId": string,
+                "sets": number,
+                "reps": number,
+                "weight": number,
+                "restTime": number
+            }
+        ],
+        "createdBy": string (user ID),
+        "isPublic": boolean,
+        "likes": string[] (user IDs)
+    }
+}
+
+4.5 Delete Workout
+-----------------
+DELETE /workouts/:id
+
+Headers:
+- Authorization: Bearer <token>
+
+Response (200 OK):
+{
+    "success": true,
+    "message": "Workout deleted successfully"
+}
+
+4.6 Like Workout
+---------------
+POST /workouts/:id/like
+
+Headers:
+- Authorization: Bearer <token>
+
+Response (200 OK):
+{
+    "success": true,
+    "message": "Workout liked successfully"
+}
+
+4.7 Get User Workouts
+--------------------
+GET /workouts/user/:userId
+
+Headers:
+- Authorization: Bearer <token>
+
+Query Parameters:
+- page: number (default: 1)
+- limit: number (default: 10)
+
+Response (200 OK):
+{
+    "success": true,
+    "workouts": [
+        {
+            "id": string,
+            "name": string,
+            "description": string,
+            "exercises": [
+                {
+                    "exerciseId": string,
+                    "sets": number,
+                    "reps": number,
+                    "weight": number,
+                    "restTime": number
+                }
+            ],
+            "createdBy": string (user ID),
+            "isPublic": boolean,
+            "likes": string[] (user IDs)
+        }
+    ],
+    "pagination": {
+        "total": number,
+        "page": number,
+        "pages": number
+    }
+}
+
+5. Routine Endpoints
+-------------------
+
+5.1 Get All Routines
+-------------------
+GET /routines
+
+Headers:
+- Authorization: Bearer <token>
+
+Query Parameters:
+- page: number (default: 1)
+- limit: number (default: 10)
+- search: string (optional)
+- createdBy: string (optional, user ID)
+
+Response (200 OK):
+{
+    "success": true,
+    "routines": [
+        {
+            "id": string,
+            "name": string,
+            "description": string,
+            "workouts": [
+                {
+                    "workoutId": string,
+                    "day": number,
+                    "order": number
+                }
+            ],
+            "createdBy": string (user ID),
+            "isPublic": boolean,
+            "likes": string[] (user IDs)
+        }
+    ],
+    "pagination": {
+        "total": number,
+        "page": number,
+        "pages": number
+    }
+}
+
+5.2 Create Routine
+-----------------
+POST /routines
+
+Headers:
+- Authorization: Bearer <token>
+- Content-Type: application/json
+
+Request Body:
+{
+    "name": string,           // Required
+    "description": string,    // Required
+    "workouts": [            // Required, at least one workout
+        {
+            "workoutId": string,
+            "day": number,
+            "order": number
+        }
+    ],
+    "isPublic": boolean      // Optional, default: false
+}
+
+Response (201 Created):
+{
+    "success": true,
+    "routine": {
+        "id": string,
+        "name": string,
+        "description": string,
+        "workouts": [
+            {
+                "workoutId": string,
+                "day": number,
+                "order": number
+            }
+        ],
+        "createdBy": string (user ID),
+        "isPublic": boolean,
+        "likes": []
+    }
+}
+
+5.3 Get Routine by ID
+--------------------
+GET /routines/:id
+
+Headers:
+- Authorization: Bearer <token>
+
+Response (200 OK):
+{
+    "success": true,
+    "routine": {
+        "id": string,
+        "name": string,
+        "description": string,
+        "workouts": [
+            {
+                "workoutId": string,
+                "day": number,
+                "order": number
+            }
+        ],
+        "createdBy": string (user ID),
+        "isPublic": boolean,
+        "likes": string[] (user IDs)
+    }
+}
+
+5.4 Update Routine
+-----------------
+PUT /routines/:id
+
+Headers:
+- Authorization: Bearer <token>
+- Content-Type: application/json
+
+Request Body:
+{
+    "name": string,           // Optional
+    "description": string,    // Optional
+    "workouts": [            // Optional
+        {
+            "workoutId": string,
+            "day": number,
+            "order": number
+        }
+    ],
+    "isPublic": boolean      // Optional
+}
+
+Response (200 OK):
+{
+    "success": true,
+    "routine": {
+        "id": string,
+        "name": string,
+        "description": string,
+        "workouts": [
+            {
+                "workoutId": string,
+                "day": number,
+                "order": number
+            }
+        ],
+        "createdBy": string (user ID),
+        "isPublic": boolean,
+        "likes": string[] (user IDs)
+    }
+}
+
+5.5 Delete Routine
+-----------------
+DELETE /routines/:id
+
+Headers:
+- Authorization: Bearer <token>
+
+Response (200 OK):
+{
+    "success": true,
+    "message": "Routine deleted successfully"
+}
+
+5.6 Like Routine
+---------------
+POST /routines/:id/like
+
+Headers:
+- Authorization: Bearer <token>
+
+Response (200 OK):
+{
+    "success": true,
+    "message": "Routine liked successfully"
+}
+
+5.7 Get User Routines
+--------------------
+GET /routines/user/:userId
+
+Headers:
+- Authorization: Bearer <token>
+
+Query Parameters:
+- page: number (default: 1)
+- limit: number (default: 10)
+
+Response (200 OK):
+{
+    "success": true,
+    "routines": [
+        {
+            "id": string,
+            "name": string,
+            "description": string,
+            "workouts": [
+                {
+                    "workoutId": string,
+                    "day": number,
+                    "order": number
+                }
+            ],
+            "createdBy": string (user ID),
+            "isPublic": boolean,
+            "likes": string[] (user IDs)
+        }
+    ],
+    "pagination": {
+        "total": number,
+        "page": number,
+        "pages": number
+    }
+}
+
+6. Workout Log Endpoints
+-----------------------
+
+6.1 Get All Workout Logs
+-----------------------
+GET /workout-logs
+
+Headers:
+- Authorization: Bearer <token>
+
+Query Parameters:
+- page: number (default: 1)
+- limit: number (default: 10)
+- startDate: string (ISO date, optional)
+- endDate: string (ISO date, optional)
+
+Response (200 OK):
+{
+    "success": true,
+    "logs": [
+        {
+            "id": string,
+            "user": string (user ID),
+            "workout": string (workout ID),
+            "date": string (ISO date),
+            "exercises": [
+                {
+                    "exercise": string (exercise ID),
+                    "sets": [
+                        {
+                            "reps": number,
+                            "weight": number,
+                            "duration": number,
+                            "completed": boolean
+                        }
+                    ]
+                }
+            ],
+            "notes": string,
+            "duration": number
+        }
+    ],
+    "pagination": {
+        "total": number,
+        "page": number,
+        "pages": number
+    }
+}
+
+6.2 Create Workout Log
+---------------------
+POST /workout-logs
+
+Headers:
+- Authorization: Bearer <token>
+- Content-Type: application/json
+
+Request Body:
+{
+    "workoutId": string,     // Required
+    "exercises": [          // Required, at least one exercise
+        {
+            "exerciseId": string,
+            "sets": [
+                {
+                    "reps": number,
+                    "weight": number,
+                    "duration": number,
+                    "completed": boolean
+                }
+            ]
+        }
+    ],
+    "duration": number,      // Required, in minutes
+    "notes": string         // Optional
+}
+
+Response (201 Created):
+{
+    "success": true,
+    "log": {
+        "id": string,
+        "user": string (user ID),
+        "workout": string (workout ID),
+        "date": string (ISO date),
+        "exercises": [
+            {
+                "exercise": string (exercise ID),
+                "sets": [
+                    {
+                        "reps": number,
+                        "weight": number,
+                        "duration": number,
+                        "completed": boolean
+                    }
+                ]
+            }
+        ],
+        "notes": string,
+        "duration": number
+    }
+}
+
+6.3 Get Workout Log by ID
+------------------------
+GET /workout-logs/:id
+
+Headers:
+- Authorization: Bearer <token>
+
+Response (200 OK):
+{
+    "success": true,
+    "log": {
+        "id": string,
+        "user": string (user ID),
+        "workout": string (workout ID),
+        "date": string (ISO date),
+        "exercises": [
+            {
+                "exercise": string (exercise ID),
+                "sets": [
+                    {
+                        "reps": number,
+                        "weight": number,
+                        "duration": number,
+                        "completed": boolean
+                    }
+                ]
+            }
+        ],
+        "notes": string,
+        "duration": number
+    }
+}
+
+6.4 Update Workout Log
+---------------------
+PUT /workout-logs/:id
+
+Headers:
+- Authorization: Bearer <token>
+- Content-Type: application/json
+
+Request Body:
+{
+    "exercises": [          // Optional
+        {
+            "exerciseId": string,
+            "sets": [
+                {
+                    "reps": number,
+                    "weight": number,
+                    "duration": number,
+                    "completed": boolean
+                }
+            ]
+        }
+    ],
+    "duration": number,      // Optional
+    "notes": string         // Optional
+}
+
+Response (200 OK):
+{
+    "success": true,
+    "log": {
+        "id": string,
+        "user": string (user ID),
+        "workout": string (workout ID),
+        "date": string (ISO date),
+        "exercises": [
+            {
+                "exercise": string (exercise ID),
+                "sets": [
+                    {
+                        "reps": number,
+                        "weight": number,
+                        "duration": number,
+                        "completed": boolean
+                    }
+                ]
+            }
+        ],
+        "notes": string,
+        "duration": number
+    }
+}
+
+6.5 Delete Workout Log
+---------------------
+DELETE /workout-logs/:id
+
+Headers:
+- Authorization: Bearer <token>
+
+Response (200 OK):
+{
+    "success": true,
+    "message": "Workout log deleted successfully"
+}
+
+6.6 Get User Workout Logs
+------------------------
+GET /workout-logs/user/:userId
+
+Headers:
+- Authorization: Bearer <token>
+
+Query Parameters:
+- page: number (default: 1)
+- limit: number (default: 10)
+- startDate: string (ISO date, optional)
+- endDate: string (ISO date, optional)
+
+Response (200 OK):
+{
+    "success": true,
+    "logs": [
+        {
+            "id": string,
+            "user": string (user ID),
+            "workout": string (workout ID),
+            "date": string (ISO date),
+            "exercises": [
+                {
+                    "exercise": string (exercise ID),
+                    "sets": [
+                        {
+                            "reps": number,
+                            "weight": number,
+                            "duration": number,
+                            "completed": boolean
+                        }
+                    ]
+                }
+            ],
+            "notes": string,
+            "duration": number
+        }
+    ],
+    "pagination": {
+        "total": number,
+        "page": number,
+        "pages": number
+    }
+}
+
+6.7 Get Workout Stats
+--------------------
+GET /workout-logs/stats
+
+Headers:
+- Authorization: Bearer <token>
+
+Query Parameters:
+- startDate: string (ISO date, optional)
+- endDate: string (ISO date, optional)
+
+Response (200 OK):
+{
+    "success": true,
+    "stats": {
+        "totalWorkouts": number,
+        "totalDuration": number,
+        "exercisesCompleted": number,
+        "averageWorkoutsPerWeek": number,
+        "mostFrequentExercises": [
+            {
+                "exerciseId": string,
+                "count": number
+            }
+        ],
+        "progressByExercise": [
+            {
+                "exerciseId": string,
+                "maxWeight": number,
+                "maxReps": number,
+                "totalSets": number
+            }
+        ]
+    }
+}
+
+Error Handling
+-------------
+All endpoints follow a consistent error response format:
+
+{
+    "success": false,
+    "error": string,
+    "code": string
+}
+
+Common Error Codes:
+- AUTH001: Invalid credentials
+- AUTH002: Email already exists
+- AUTH005: Account not found
+- AUTH006: Account inactive
+- VAL001: Validation error
+- RATE001: Rate limit exceeded
+- NOT_FOUND: Resource not found
+- UNAUTHORIZED: Unauthorized access
+- FORBIDDEN: Forbidden access
+
+Rate Limiting
+------------
+- Register: 5 requests per hour
+- Login: 10 requests per hour
+- Other endpoints: 100 requests per hour
+
+Security Notes
+-------------
+1. All passwords are hashed using bcrypt
+2. JWT tokens expire after 1 hour
+3. Refresh tokens are stored in HTTP-only cookies
+4. CORS is enabled for frontend origin
+5. Rate limiting is implemented for all routes
+6. Input validation is performed on all requests 
